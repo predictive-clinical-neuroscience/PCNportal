@@ -1,0 +1,11 @@
+ version: '3.7'
+ services:
+   dashboard:
+     build: 
+       context: ./
+     container_name: PCNonline_dash_local
+     hostname: PCNonline_dash_local
+     environment:
+        - MYUSER=$MYUSER
+        - PROJECTDIR=$PROJECTDIR
+        - EXECUTEFILE=$EXECUTEFILE
