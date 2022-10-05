@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
+client/*
+.config.py
+=======
+=======
+>>>>>>> 16ea06ee544bd9fb37e3e0629bc0d16bebaa86f6
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -142,3 +149,7 @@ docs/phenotypes_rh.txt
 docs/phenotypes_sc.txt
 docs/site_ids_82sites.txt
 client/.ssh/id_rsa
+<<<<<<< HEAD
+>>>>>>> 16ea06ee544bd9fb37e3e0629bc0d16bebaa86f6
+=======
+>>>>>>> 16ea06ee544bd9fb37e3e0629bc0d16bebaa86f6
