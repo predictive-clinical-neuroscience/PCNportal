@@ -5,7 +5,6 @@
 # 4 = session id
 # 5 = algorithm
 # 6 = user email address
-#
 
 # Activate our virtual environment.
 # Activate pcntoolkit devel environment, preferred syntax above conda activate
