@@ -11,6 +11,7 @@ RUN pip3 cache purge
 # Copy files
 RUN mkdir sessions
 COPY app.py ./app.py
+COPY assets ./assets
 COPY .ssh /root/.ssh
 RUN chmod -R 600 /root/.ssh
 # Runs gunicorn and SSH
