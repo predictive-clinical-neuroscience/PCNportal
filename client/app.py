@@ -218,8 +218,16 @@ app.layout = html.Div([
                     )
             ], style={'padding': 10, 'flex': 1}),
         ])
-        
     ])
+    )
+    ,
+    html.Div(
+        children=[
+            html.Img(src=r'assets/wellcome_logo.png', alt='image'),
+            html.Img(src=r'assets/erc_logo.png', alt='image'),
+            html.Img(src='https://brainhelpdesk.ru.nl/img/donders.1c326c51.jpg', alt='image'),
+            html.Img(src=r'assets/pcn_logo.png', alt='image')
+        ]
     )
 ], style={'display': 'flex', 'flex-direction': 'row', 'height': '80%', 'width': '60%', 'position': 'relative', 'top':'40%', 'left':'20%' })
 # -----------------------------------------------------------------

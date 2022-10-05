@@ -3,8 +3,8 @@
    dashboard:
      build: 
        context: ./
-     container_name: PCNonline_dash_local
-     hostname: PCNonline_dash_local
+     container_name: PCNonline_dash_localtest
+     hostname: PCNonline_dash_localtest
      environment:
         - MYUSER=$MYUSER
         - PROJECTDIR=$PROJECTDIR
