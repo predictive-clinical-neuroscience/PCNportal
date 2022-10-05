@@ -137,7 +137,6 @@ dmypy.json
 .ssh/id_rsa
 *.pub
 *.csv
-server/*
 docs/phenotypes_lh.txt
 docs/phenotypes_rh.txt
 docs/phenotypes_sc.txt
