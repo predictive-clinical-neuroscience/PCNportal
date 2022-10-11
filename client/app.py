@@ -6,10 +6,6 @@
 #    and results to users accessing from all over the world, 
 #    It is hosted as a website from a remote gunicorn server.
 
-# TO-DOs include:
-# Writing help scripts for transfering models.
-# Writing scripts to retrieve subdirs from server - is this necessary for serverside script?
-
 # python code for sshing into mentat
 #        cmd = 'plink mentat004.dccn.nl -l piebar -pw "mypassword"'
         # retcode = subprocess.call(cmd,shell=True)
@@ -23,10 +19,6 @@ from flask import Flask
 #import os, sys
 import io, os, base64
 
-# Make sure that this is necessary
-#sys.path.insert(1, "/home/preclineu/piebar/Documents/PCN_directory/")
-#from apply_normative_models_app import apply_normative_model
-#from transfer_normative_models_app import transfer_normative_model
 # Create a flask server
 server = Flask(__name__)
 # Create  Dash app
@@ -39,10 +31,11 @@ def retrieve_options(data_type=None):
     if data_type is not None:
         chosen_dir = os.path.join("models", data_type)
     username = os.environ['MYUSER']
-    project_dir = os.environ['PROJECTDIR']
-    print(f'{username, project_dir}')
-    list_dirs = ["ssh", "-o", "StrictHostKeyChecking=no", username, "python", os.path.join(project_dir, "list_subdirs.py"), str(chosen_dir)]
-    
+    py_script = os.path.join(os.environ['PROJECTDIR'], "test_scripts", "server", "list_subdirs.py")
+    print(f'{username, py_script}')
+    list_dirs = ["ssh", "-o", "StrictHostKeyChecking=no", username, "python", py_script, str(chosen_dir)]
+    # ssh -o StrictHostKeyChecking=no ***REMOVED*** python ***REMOVED***/list_subdirs.py "models"
+    #test ssh: ["ssh", "-o", "StrictHostKeyChecking=no", "***REMOVED***", "python", "***REMOVED***/list_subdirs.py", "models"]#
     p = Popen(list_dirs, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, err = p.communicate()
     # is this helpful? gives the return code of the command
@@ -125,7 +118,7 @@ app.layout = html.Div([
                 # -----------------------------------------------------------------
                 html.Br(),
                 html.Label('Data type'),
-                dcc.Dropdown(options = ['datatype placeholder'], id='data-type'), # For styling commented: retrieve_options()
+                dcc.Dropdown(options = retrieve_options(), id='data-type'), # For styling commented: retrieve_options()
                 
                 html.Br(),
                 html.Label('Normative Model'),
@@ -319,7 +312,7 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
         # create session dir and transfer data there
         username = os.environ['MYUSER']
         projectdir = os.environ['PROJECTDIR']
-        executefile =os.environ['EXECUTEFILE']
+        executefile = os.environ['EXECUTEFILE']
         #removed /idp_results from {session_dir}
         session_dir = os.path.join(projectdir, "sessions", session_id)
         scp = """ssh -oStrictHostKeyChecking=no {user} mkdir -p {session_dir} && 
@@ -327,7 +320,8 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
         subprocess.call(scp, shell=True)
         algorithm = model_name.split("_")[0]
         bash_path = os.path.join(projectdir, executefile)
-        execute = 'ssh -oStrictHostKeyChecking=no {user} {bash_path} {user} {projectdir} {model_name} {data_type_dir} {session_id} {algorithm} {email_address}'.format(user=username, bash_path=bash_path, projectdir = projectdir, model_name=model_name, data_type_dir = data_type_dir, session_id=session_id, algorithm=algorithm, email_address = email_address) 
+        print(f"{bash_path=}")
+        execute = 'ssh -oStrictHostKeyChecking=no {user} {bash_path} {projectdir} {model_name} {data_type_dir} {session_id} {algorithm} {email_address}'.format(user=username, bash_path=bash_path, projectdir = projectdir, model_name=model_name, data_type_dir = data_type_dir, session_id=session_id, algorithm=algorithm, email_address = email_address) 
         subprocess.call(execute, shell=True)
 
         finished_message = "Your computation request has been sent!"
