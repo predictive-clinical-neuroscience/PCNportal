@@ -88,11 +88,30 @@ app.layout = html.Div([
             ''', link_target="_blank"), style={'margin':'auto','width':"80%"}
             )
         ]),
-        dcc.Tab(label='Model information', children=[
+        dcc.Tab(label='How to Model', children=[
             html.Br(),
             html.Div(
                 
                 dcc.Markdown('''
+
+                ### How to turn data into z-scores
+                - First take a look at the provided template for both adaptation and test data.
+                - Then, go to the 'Compute here!' tab and select the data type you'll be using.
+                - You can now select one of the available models for this data type (described in 'Model information')
+                - Upload your adaptation and test data in the right boxes.
+                - Enter the email address where you would like to receive your downloadable results.
+                - Press submit!
+
+                
+            ''', link_target="_blank"), style={'margin':'auto','width':"80%"}
+            )
+        ]
+        ),
+        dcc.Tab(label='Model information', children=[
+            html.Br(),
+            html.Div(
+                dcc.Markdown(
+                            '''
                 ## Available models
 
                 Please find below information on published models (with references) and unpublished models.
@@ -107,10 +126,12 @@ app.layout = html.Div([
                 The model names contain information of their learning configurations, and can be understood as alg_sample_etc, where:
                 * alg = algorithm
                 * sample = training sample
-            '''), style={'margin':'auto','width':"80%"}
+            ''', style={'margin':'auto','width':"80%"}
             )
+            )
+
         ]),
-        dcc.Tab(label='Modelling', id='modelling',
+        dcc.Tab(label='Compute here!', id='modelling',
         
         children=[
             html.Div(children=[
@@ -123,7 +144,7 @@ app.layout = html.Div([
                 html.Br(),
                 html.Label('Normative Model'),
                 dcc.Dropdown( options = ['please select data type first'], value = 'please select data type first', id='model-selection'),
-
+                dcc.Markdown(id="model-readme"), 
                 html.Br(),
                 html.Label('Select data format'),
                 dcc.Dropdown(['.csv'], '.csv'), #['.csv', 'NIFTI', '[other formats]']
@@ -213,7 +234,7 @@ app.layout = html.Div([
                             style={'float':'right'},
                             children=[
                                 html.Button("Submit", id="btn_csv"),
-                                html.Plaintext(id="submitted"),
+                                #html.Plaintext(id="submitted"),
 
                                 # To-do: make it downloadable onclick. this works together with disable_download also commented out.
                                 # Download your predictions in .csv format!
@@ -225,6 +246,15 @@ app.layout = html.Div([
                         )
                         ]
                     , style={'float': 'right', 'display':'flex'}
+                    ),
+                
+                    html.Div(
+                        style={'float':'right'},
+                        children=[
+                            html.Plaintext(id="submitted")
+                        ]
+                            
+                        
                     )
             ], style={'margin':'auto','width':'80%','padding': 10, 'flex': 1}),
         ])
@@ -244,6 +274,16 @@ app.layout = html.Div([
 ], style={'display': 'flex', 'flex-direction': 'row', 'height': '80%', 'width': '60%', 'position': 'relative', 'top':'40%', 'left':'20%' })
 # -----------------------------------------------------------------
 # Functions that handle input and output for the Dash components.
+
+@app.callback(
+    Output(component_id='model-readme', component_property='children'),
+    [Input(component_id='model-selection', component_property='value')],
+    prevent_initial_call=True
+)
+def model_information(model_selection):
+    with open('assets/README.md', 'r') as mdfile:
+        readme = mdfile.readlines()
+        return readme
 
 
 # Function to restrict model choice based on data type choice
@@ -319,10 +359,10 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
         scp -oStrictHostKeyChecking=no {test} {adapt} {user}:{session_dir}""".format(user = username, session_dir = session_dir, test=test_path, adapt=adapt_path)
         subprocess.call(scp, shell=True)
         algorithm = model_name.split("_")[0]
-        bash_path = os.path.join(projectdir, executefile)
-        print(f"{bash_path=}")
+        # os path join does something strange with attaching two paths
+        bash_path = os.path.join(projectdir, executefile).replace("\\","/")
         execute = 'ssh -oStrictHostKeyChecking=no {user} {bash_path} {projectdir} {model_name} {data_type_dir} {session_id} {algorithm} {email_address}'.format(user=username, bash_path=bash_path, projectdir = projectdir, model_name=model_name, data_type_dir = data_type_dir, session_id=session_id, algorithm=algorithm, email_address = email_address) 
-        subprocess.call(execute, shell=True)
+        #subprocess.call(execute, shell=True)
 
         finished_message = "Your computation request has been sent!"
 
