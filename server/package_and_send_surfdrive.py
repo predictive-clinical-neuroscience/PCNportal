@@ -85,12 +85,13 @@ def zipper(dirName, zipFileName, filter): #filter
     os.chdir(dirName)
     with ZipFile(zipFileName, 'w') as zipObj:
         # Iterate over all the files in directory
-        for folderName, subfolders, filenames in os.walk(dirName):
+        # for folderName, subfolders, filenames in os.walk(dirName):
             
-            for filename in filenames:
-                if filter(filename):
-                    # create complete filepath of file in directory
-                    filePath = os.path.join(folderName, filename)
-                    # Add file to zip
-                    zipObj.write(filePath, basename(filePath))
+        #     for filename in filenames:
+        for filename in os.listdir(dirName):
+            if filter(filename):
+                # create complete filepath of file in directory
+                #filePath = os.path.join(folderName, filename)
+                # Add file to zip
+                zipObj.write(filename, filename)
 #send_results()
