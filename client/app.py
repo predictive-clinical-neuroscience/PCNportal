@@ -32,7 +32,7 @@ def retrieve_options(data_type=None):
         chosen_dir = os.path.join("models", data_type)
     username = os.environ['MYUSER']
     py_script = os.path.join(os.environ['PROJECTDIR'], "test_scripts", "server", "list_subdirs.py")
-    print(f'{username, py_script}')
+
     list_dirs = ["ssh", "-o", "StrictHostKeyChecking=no", username, "python", py_script, str(chosen_dir)]
     # ssh -o StrictHostKeyChecking=no piebar@mentat004.dccn.nl python /project_cephfs/3022051.01/list_subdirs.py "models"
     #test ssh: ["ssh", "-o", "StrictHostKeyChecking=no", "piebar@mentat004.dccn.nl", "python", "/project_cephfs/3022051.01/list_subdirs.py", "models"]#
@@ -43,7 +43,6 @@ def retrieve_options(data_type=None):
     # strip, to get rid of (/n)
     
     byte_to_string = str(output, encoding='UTF-8').strip()
-    print(f'{byte_to_string}')
     string_to_list = ast.literal_eval(byte_to_string)
 
     return string_to_list
@@ -126,6 +125,8 @@ app.layout = html.Div([
                 The model names contain information of their learning configurations, and can be understood as alg_sample_etc, where:
                 * alg = algorithm
                 * sample = training sample
+                * amount of sites
+                * 
             ''', style={'margin':'auto','width':"80%"}
             )
             )
@@ -275,16 +276,34 @@ app.layout = html.Div([
 # -----------------------------------------------------------------
 # Functions that handle input and output for the Dash components.
 
+# Function for writing out model information markdown files
 @app.callback(
     Output(component_id='model-readme', component_property='children'),
-    [Input(component_id='model-selection', component_property='value')],
+    Input(component_id='model-selection', component_property='value'),
+    State(component_id='data-type', component_property='value'),
     prevent_initial_call=True
 )
-def model_information(model_selection):
-    with open('assets/README.md', 'r') as mdfile:
-        readme = mdfile.readlines()
-        return readme
-
+def model_information(model_selection, data_type):
+    projectdir = os.environ['PROJECTDIR']
+    username = os.environ['MYUSER']
+    model_path = os.path.join(projectdir, "models", data_type, model_selection, "test_README.md")
+    # model_path = 
+    # ssh -o StrictHostKeyChecking=no piebar@mentat004.dccn.nl cat /project_cephfs/3022051.01/models/ThickAvg/BLR_lifespan_57K_82sites/test_README.md
+    print(f'{model_path=}')
+    # testing
+    # with open('assets/README.md', 'r') as mdfile:
+    #     readme = mdfile.readlines()
+    #     return readme
+    cat_readme = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", model_path]
+    p = Popen(cat_readme, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    output, _ = p.communicate()
+    import ast
+    byte_to_string = str(output, encoding='UTF-8')#.strip()
+    print(f'{byte_to_string=}')
+    #string_to_list = ast.literal_eval(byte_to_string)
+    #print(f'{string_to_list=}')
+    return byte_to_string #string_to_list
+    #/project_cephfs/3022051.01/models/ThickAvg/BLR_lifespan_57K_82sites/test_README.md
 
 # Function to restrict model choice based on data type choice
 @app.callback(
@@ -322,9 +341,10 @@ def update_dp(data_type):
 )
 def update_output(email_address, data_type_dir, model_name, contents_test, name_test, date_test, 
                   contents_adapt, name_adapt, date_adapt, clicks):
-    import subprocess
+    
     # TO-DO this if could use an 'else'. We can do data checking here too. 
     if contents_test is not None and contents_adapt is not None:
+        import subprocess
         # Convert input csv data to pandas
         test_data_pd = parse_contents(contents_test, name_test, date_test)
         adapt_data_pd = parse_contents(contents_adapt, name_adapt, date_adapt)
@@ -364,7 +384,7 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
         execute = 'ssh -oStrictHostKeyChecking=no {user} {bash_path} {projectdir} {model_name} {data_type_dir} {session_id} {algorithm} {email_address}'.format(user=username, bash_path=bash_path, projectdir = projectdir, model_name=model_name, data_type_dir = data_type_dir, session_id=session_id, algorithm=algorithm, email_address = email_address) 
         #subprocess.call(execute, shell=True)
 
-        finished_message = "Your computation request has been sent!"
+        finished_message = "Your computation request has been sent with session id: {session_id}!".format(session_id=session_id)
 
         return finished_message
 
