@@ -5,7 +5,5 @@
        context: ./
      container_name: PCNonline_dash_localtest
      hostname: PCNonline_dash_localtest
-     environment:
-        - MYUSER=$MYUSER
-        - PROJECTDIR=$PROJECTDIR
-        - EXECUTEFILE=$EXECUTEFILE
+     env_file:
+        - variables.env

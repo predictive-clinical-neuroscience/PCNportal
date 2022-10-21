@@ -31,7 +31,7 @@ def retrieve_options(data_type=None):
     if data_type is not None:
         chosen_dir = os.path.join("models", data_type)
     username = os.environ['MYUSER']
-    py_script = os.path.join(os.environ['PROJECTDIR'], "test_scripts", "server", "list_subdirs.py")
+    py_script = os.path.join(os.environ['PROJECTDIR'], os.environ['SCRIPTDIR'], os.environ['LISTDIR'])
 
     list_dirs = ["ssh", "-o", "StrictHostKeyChecking=no", username, "python", py_script, str(chosen_dir)]
     # ssh -o StrictHostKeyChecking=no ***REMOVED*** python ***REMOVED***/list_subdirs.py "models"
@@ -65,24 +65,25 @@ app.layout = html.Div([
                 to predict and stratify brain disorders on the basis of neuroimaging data.
 
                 Case-control studies are not sufficient to understand brain dysfunction, due to the large clinical heterogeneity.
-                Normative models are a highly effective way to deal with this individual variability, and
-                can be developed using our [PCNtoolkit](https://github.com/amarquand/PCNtoolkit); a highly flexible framework that accounts for site effects
-                and only requires knowledge of basic Python programming. Nevertheless, developing normative models
+                Normative models is a proven effective way to deal with this individual variability. However, developing high-quality normative models
                 takes considerable technical and computational resources. Moreover, normative models, like all
                 big data models, are most effective when trained on huge neuroimaging data sets - a constraint for scientists.
-
+                
                 We developed this website to make it trivial to use pre-trained normative models (see 'Model information'), trained on 10.000s of neuroimages from many different sites.
                 Scientists can now make use of these models in a few clicks (see 'Modelling'), requiring no technical background or compute power, and only a data set of choice. 
                 With minimal effort, you can find out how abnormal your IDPs are across covariates, such as age and gender.
                 
+                The website is a direct extension of the [PCNtoolkit](https://github.com/amarquand/PCNtoolkit); a highly flexible framework that accounts for site effects
+                and only requires basic knowledge of modelling and Python programming.
+                
                 Happy modelling!
 
-                Learn more about normative modelling, and how to develop your own models with PCNtoolkit [here](https://pcntoolkit.readthedocs.io/en/latest/pages/pcntoolkit_background.html).
+                _Learn more about normative modelling, and how to develop your own models with PCNtoolkit [here](https://pcntoolkit.readthedocs.io/en/latest/pages/pcntoolkit_background.html)._
 
                 
-                __Disclaimer:__ this application is GDPR compliant. By submitting your data on our website, you give permission to process your data.
+                _**Disclaimer:** this application is GDPR compliant. By submitting your data on our website, you give permission to process your data.
                 Data will be removed from our system within 30 days, as per EU regulations. The normative models should purely be used for scientific investigations and explorations,
-                and have not been approved for clinical applications, although this is a future goal.
+                and have not been approved for clinical applications, although this is a future goal._
 
             ''', link_target="_blank"), style={'margin':'auto','width':"80%"}
             )
@@ -140,11 +141,11 @@ app.layout = html.Div([
                 # -----------------------------------------------------------------
                 html.Br(),
                 html.Label('Data type'),
-                dcc.Dropdown(options = retrieve_options(), id='data-type'), # For styling commented: retrieve_options()
+                dcc.Dropdown(options = ["ThickAvg"], id='data-type'), # For styling commented: retrieve_options()
                 
                 html.Br(),
                 html.Label('Normative Model'),
-                dcc.Dropdown( options = ['please select data type first'], value = 'please select data type first', id='model-selection'),
+                dcc.Dropdown( options = [], value = 'please select data type first', id='model-selection'), #"please select data type first..."
                 dcc.Markdown(id="model-readme"), 
                 html.Br(),
                 html.Label('Select data format'),
@@ -198,39 +199,39 @@ app.layout = html.Div([
                     children=[
                         # -----------------------------------------------------------------
                         # Check lists with all options to control results output
-                        dcc.Checklist(className ='checkbox_1',
-                                    style={'margin-right': '0%'},
-                                    options=[
-                                        {'label': 'raw data', 'value': 'I1ST2', 'disabled': True},
-                                        {'label': 'raw data', 'value': 'I2ST2', 'disabled': True},
-                                        {'label': 'raw data', 'value': 'I3ST2', 'disabled': True},
-                                        {'label': 'raw data', 'value': 'I4ST2', 'disabled': True}
-                                            ],
-                                    value=['I1ST2'],
-                                    labelStyle = {'display': 'block'}
-                                            ),
-                        dcc.Checklist(className ='checkbox_2',
-                                    style={'margin-right': '0%'},
-                                    options=[
-                                        {'label': 'visualization', 'value': 'I1MT', 'disabled': True},
-                                        {'label': 'visualization', 'value': 'I2MT', 'disabled': True},
-                                        {'label': 'visualization', 'value': 'I3MT', 'disabled': True},
-                                        {'label': 'visualization', 'value': 'I4MT', 'disabled': True}
-                                        ],
-                                    value=[],
-                                    labelStyle = {'display': 'block'}
-                                            ),
-                        dcc.Checklist(className ='checkbox_3',
-                                    style={'margin-right': '0%'},
-                                options=[
-                                    {'label': 'z-score brain space', 'value': 'I1ST1', 'disabled': True},
-                                    {'label': 'Centile plots', 'value': 'I2ST1', 'disabled': True},
-                                    {'label': 'Exp. Var. plots', 'value': 'I3ST1', 'disabled': True},
-                                    {'label': '[other error measures]', 'value': 'I4ST1', 'disabled': True}
-                                        ],
-                                value=['I1ST1'],
-                                labelStyle = {'display': 'block'}
-                                        ),
+                        # dcc.Checklist(className ='checkbox_1',
+                        #             style={'margin-right': '0%'},
+                        #             options=[
+                        #                 {'label': 'raw data', 'value': 'I1ST2', 'disabled': True},
+                        #                 {'label': 'raw data', 'value': 'I2ST2', 'disabled': True},
+                        #                 {'label': 'raw data', 'value': 'I3ST2', 'disabled': True},
+                        #                 {'label': 'raw data', 'value': 'I4ST2', 'disabled': True}
+                        #                     ],
+                        #             value=['I1ST2'],
+                        #             labelStyle = {'display': 'block'}
+                        #                     ),
+                        # dcc.Checklist(className ='checkbox_2',
+                        #             style={'margin-right': '0%'},
+                        #             options=[
+                        #                 {'label': 'visualization', 'value': 'I1MT', 'disabled': True},
+                        #                 {'label': 'visualization', 'value': 'I2MT', 'disabled': True},
+                        #                 {'label': 'visualization', 'value': 'I3MT', 'disabled': True},
+                        #                 {'label': 'visualization', 'value': 'I4MT', 'disabled': True}
+                        #                 ],
+                        #             value=[],
+                        #             labelStyle = {'display': 'block'}
+                        #                     ),
+                        # dcc.Checklist(className ='checkbox_3',
+                        #             style={'margin-right': '0%'},
+                        #         options=[
+                        #             {'label': 'z-score brain space', 'value': 'I1ST1', 'disabled': True},
+                        #             {'label': 'Centile plots', 'value': 'I2ST1', 'disabled': True},
+                        #             {'label': 'Exp. Var. plots', 'value': 'I3ST1', 'disabled': True},
+                        #             {'label': '[other error measures]', 'value': 'I4ST1', 'disabled': True}
+                        #                 ],
+                        #         value=['I1ST1'],
+                        #         labelStyle = {'display': 'block'}
+                        #                 ),
                         html.Div(
                             style={'float':'right'},
                             children=[
@@ -286,7 +287,7 @@ app.layout = html.Div([
 def model_information(model_selection, data_type):
     projectdir = os.environ['PROJECTDIR']
     username = os.environ['MYUSER']
-    model_path = os.path.join(projectdir, "models", data_type, model_selection, "test_README.md")
+    model_path = os.path.join(projectdir, "models", data_type, model_selection, "README.md")
     # model_path = 
     # ssh -o StrictHostKeyChecking=no ***REMOVED*** cat ***REMOVED***/models/ThickAvg/BLR_lifespan_57K_82sites/test_README.md
     print(f'{model_path=}')
@@ -300,8 +301,6 @@ def model_information(model_selection, data_type):
     import ast
     byte_to_string = str(output, encoding='UTF-8')#.strip()
     print(f'{byte_to_string=}')
-    #string_to_list = ast.literal_eval(byte_to_string)
-    #print(f'{string_to_list=}')
     return byte_to_string #string_to_list
     #***REMOVED***/models/ThickAvg/BLR_lifespan_57K_82sites/test_README.md
 
@@ -351,12 +350,12 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
         # Remote working_dir
         import os, base64, uuid
         session_id = str(uuid.uuid4()).replace("-", "")
-        session_path = os.path.join("sessions", session_id)
-        os.mkdir(session_id)
+        session_path = os.path.join("sessions", session_id).replace("\\","/")
+        os.mkdir(session_path)
 
         #session_id = "session_id" + str(random.randint(100000,999999))
-        test_path = os.path.join(session_path, "/test.pkl")
-        adapt_path = os.path.join(session_path, "/adapt.pkl")
+        test_path = os.path.join(session_path, "test.pkl").replace("\\","/")
+        adapt_path = os.path.join(session_path, "adapt.pkl").replace("\\","/")
         test_data_pd.to_pickle(test_path)
         adapt_data_pd.to_pickle(adapt_path)
         
@@ -370,21 +369,25 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
         
         #idp_dir = os.path.join(session_dir, "idp_results")
         # create session dir and transfer data there
-        username = os.environ['MYUSER']
-        projectdir = os.environ['PROJECTDIR']
-        executefile = os.environ['EXECUTEFILE']
+        username = os.environ['MYUSER'] #"***REMOVED***"
+        projectdir = os.environ['PROJECTDIR'] #"***REMOVED***"
+        scriptdir = os.environ['SCRIPTDIR'] #"***REMOVED***"
+        executefile = os.environ['EXECUTEFILE']#"execute_modelling.sh"#
         #removed /idp_results from {session_dir}
-        session_dir = os.path.join(projectdir, "sessions", session_id)
-        scp = """ssh -oStrictHostKeyChecking=no {user} mkdir -p {session_dir} && 
-        scp -oStrictHostKeyChecking=no {test} {adapt} {user}:{session_dir}""".format(user = username, session_dir = session_dir, test=test_path, adapt=adapt_path)
+        session_dir = os.path.join(projectdir, "sessions", session_id).replace("\\","/")
+        scp = 'ssh -o "StrictHostKeyChecking=no" {username} mkdir -p {session_dir} && scp -o "StrictHostKeyChecking=no" {test} {adapt} {username}:{session_dir}'.format(username = username, session_dir = session_dir, test=test_path, adapt=adapt_path)
+        testscp = 'ssh -o "StrictHostKeyChecking=no" ***REMOVED*** mkdir -p {session_dir} && scp -o "StrictHostKeyChecking=no" {test} {adapt} ***REMOVED***:***REMOVED***/sessions/f218a52645724b1fa7400e3c4248d876'.format(session_dir = session_dir, test=test_path, adapt=adapt_path)
         subprocess.call(scp, shell=True)
         algorithm = model_name.split("_")[0]
         # os path join does something strange with attaching two paths
-        bash_path = os.path.join(projectdir, executefile).replace("\\","/")
-        execute = 'ssh -oStrictHostKeyChecking=no {user} {bash_path} {projectdir} {model_name} {data_type_dir} {session_id} {algorithm} {email_address}'.format(user=username, bash_path=bash_path, projectdir = projectdir, model_name=model_name, data_type_dir = data_type_dir, session_id=session_id, algorithm=algorithm, email_address = email_address) 
-        #subprocess.call(execute, shell=True)
+        bash_path = os.path.join(projectdir, scriptdir, executefile).replace("\\","/") #"***REMOVED***/***REMOVED***/execute_modelling.sh"#
+        print(f'{scp=},{testscp=}')
+        execute = 'ssh -o "StrictHostKeyChecking=no" {user} {bash_path} {projectdir} {model_name} {data_type_dir} {session_id} {algorithm} {email_address}'.format(user=username, bash_path=bash_path, projectdir = projectdir, model_name=model_name, data_type_dir = data_type_dir, session_id=session_id, algorithm=algorithm, email_address = email_address) 
+        testexecute = 'ssh -o "StrictHostKeyChecking=no" ***REMOVED*** ***REMOVED***/***REMOVED***/execute_modelling.sh "***REMOVED***" "Somemodel" "ThickAvg" "f218a52645724b1fa7400e3c4248d876" "Somemodel" "pieter.barkema@donders.ru.nl"'
+        #print(f'{execute=}, {testexecute=}')
+        subprocess.call(execute, shell=True)
 
-        finished_message = "Your computation request has been sent with session id: {session_id}!".format(session_id=session_id)
+        finished_message = "Your computation request has been sent with session id: {session_id}".format(session_id=session_id)
 
         return finished_message
 
