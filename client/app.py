@@ -55,37 +55,26 @@ app.layout = html.Div([
         dcc.Tab(label='Home', children=[
             html.Br(),
             html.Div(
-                
+                #!["A pretty tiger"](https://github.com/predictive-clinical-neuroscience/braincharts/blob/master/docs/image_files/ThickAvg_BLR_lifespan_age.png?raw=true)
                 dcc.Markdown('''
-
+                
                 ### Fuss-free normative modelling
+                <img src="https://github.com/predictive-clinical-neuroscience/braincharts/blob/master/docs/image_files/ThickAvg_BLR_lifespan_age.png?raw=true" alt="Employee data" width="500" height="600" title="Employee Data title">
+                
+                Our [Predictive Clinical Neuroscience group](https://predictiveclinicalneuroscience.com/) at the Donders Institute and RadboudUMC develops normative models to predict and stratify brain disorders on the basis of neuroimaging data. 
 
-                The [Predictive Clinical Neuroscience](https://predictiveclinicalneuroscience.com/) group at the Donders Institute and RadboudUMC 
-                develops statistical and machine learning techniques 
-                to predict and stratify brain disorders on the basis of neuroimaging data.
+                Clinical heterogeneity makes case-control studies insufficient to fully understand brain dysfunction, and normative models are a highly effective way to deal with this individual variability. These models can be developed using our [PCNtoolkit](https://github.com/amarquand/PCNtoolkit): a highly flexible modeling framework that can handle multi-site data, and only requires knowledge of basic Python programming to implement. Nevertheless, developing high-quality normative models takes considerable resources. Moreover, large neuroimaging data sets are necessary to harness the power of normative models which forms a considerable bottleneck, as for all big data models.
 
-                Case-control studies are not sufficient to understand brain dysfunction, due to the large clinical heterogeneity.
-                Normative models is a proven effective way to deal with this individual variability. However, developing high-quality normative models
-                takes considerable technical and computational resources. Moreover, normative models, like all
-                big data models, are most effective when trained on huge neuroimaging data sets - a constraint for scientists.
-                
-                We developed this website to make it trivial to use pre-trained normative models (see 'Model information'), trained on 10.000s of neuroimages from many different sites.
-                Scientists can now make use of these models in a few clicks (see 'Modelling'), requiring no technical background or compute power, and only a data set of choice. 
-                With minimal effort, you can find out how abnormal your IDPs are across covariates, such as age and gender.
-                
-                The website is a direct extension of the [PCNtoolkit](https://github.com/amarquand/PCNtoolkit); a highly flexible framework that accounts for site effects
-                and only requires basic knowledge of modelling and Python programming.
-                
+                This website makes it trivial to use pre-trained normative models, trained on tens of thousands of brain images from many different data collection sites. You can now make use of all of our available models in a few clicks, requiring no technical background or compute power, and only a data set of choice. With minimal effort, you can derive subject level statistics for further analysis and find out how well your neural biomarkers match the normative patterns we provide as a function of  covariates such as age and gender.
+               
                 Happy modelling!
 
                 _Learn more about normative modelling, and how to develop your own models with PCNtoolkit [here](https://pcntoolkit.readthedocs.io/en/latest/pages/pcntoolkit_background.html)._
 
                 
-                _**Disclaimer:** this application is GDPR compliant. By submitting your data on our website, you give permission to process your data.
-                Data will be removed from our system within 30 days, as per EU regulations. The normative models should purely be used for scientific investigations and explorations,
-                and have not been approved for clinical applications, although this is a future goal._
+                _**Disclaimer:** this application strives to comply with best practices in data protection including relevant European and International laws (including GDPR). By submitting your pseudoanonymised imaging data on our website, you give permission to process your data. Data will be removed from our system within 30 days. At this time, no warranty is provided and these normative models should purely be used for scientific investigations and explorations. They have not been approved for clinical applications, although this is a future goal._
 
-            ''', link_target="_blank"), style={'margin':'auto','width':"80%"}
+            ''', link_target="_blank", dangerously_allow_html=True), style={'margin':'auto','width':"80%", 'height':"20%"}
             )
         ]),
         dcc.Tab(label='How to Model', children=[
@@ -94,13 +83,28 @@ app.layout = html.Div([
                 
                 dcc.Markdown('''
 
-                ### How to turn data into z-scores
-                - First take a look at the provided template for both adaptation and test data.
-                - Then, go to the 'Compute here!' tab and select the data type you'll be using.
-                - You can now select one of the available models for this data type (described in 'Model information')
+                ### How do I model my data?
+                First, we explore what normative model is best for you.
+                - Go to the ‘Model information’ tab to explore the model name syntax
+                - Then, go to the 'Compute here!' tab and select the data type you'll be using
+                - From the ‘Normative Model’ dropdown menu, select a model to view model-specific information on training data and hyperparameters
+                - Choose a model according to your preferences
+
+                Then, the data should be properly prepared.
+                - From the model-specific information, download the provided template .csv (more data types will be supported in the future)
+                - Ensure that your datasets match the provided column names
+                - Split your data into an adaptation and test set according to your preferred split
                 - Upload your adaptation and test data in the right boxes.
-                - Enter the email address where you would like to receive your downloadable results.
-                - Press submit!
+
+                Submit your computation request!
+                - Enter the email address to receive your downloadable results.
+                - Press ‘submit’. Congratulations!
+
+                What happens next?
+                - Your session ID will now be provided after submission is complete. Copy & save it somewhere in case you would like to request help with troubleshooting.
+                - Within several hours, you should receive an email in your inbox with a link to download your results and model-related error measures.
+                - Please be patient: the waiting time may vary according to model choice, data set and network traffic. Wait for 24 hours before requesting support.
+
 
                 
             ''', link_target="_blank"), style={'margin':'auto','width':"80%"}
@@ -112,22 +116,18 @@ app.layout = html.Div([
             html.Div(
                 dcc.Markdown(
                             '''
-                ## Available models
+                Here you can find general information about our available models. The models have been trained on extensive data sets with thorough parameter tuning. A subset of these models have also formed the basis of published work.
+                The model names contain information of their learning configurations, and can be viewed per data type. **Model-specific information is provided upon choosing a model from the dropdown menu.**
+                
+                The model name consists of the syntax alg_name_sample_sites, where:
+                * alg = algorithm (options: HBR, BLR)
+                * name = description of the model type
+                * sample = training sample size (e.g. 82K is 82.000 subjects)
+                * sites = amount of unique training sites
+                
+                The data types currently supported are:
+                [list directories of data types here]
 
-                Please find below information on published models (with references) and unpublished models.
-
-                #### Published models
-
-                * (Example) Rutherford et al (eLife, 2022): a Bayesian Linear Regression model trained on n MRI scans.
-
-                #### Unpublished models
-
-                Unpublished models make use of Bayesian Linear Regression and Hierarchical Bayesian Regression. \n
-                The model names contain information of their learning configurations, and can be understood as alg_sample_etc, where:
-                * alg = algorithm
-                * sample = training sample
-                * amount of sites
-                * 
             ''', style={'margin':'auto','width':"80%"}
             )
             )
@@ -141,7 +141,7 @@ app.layout = html.Div([
                 # -----------------------------------------------------------------
                 html.Br(),
                 html.Label('Data type'),
-                dcc.Dropdown(options = ["ThickAvg"], id='data-type'), # For styling commented: retrieve_options()
+                dcc.Dropdown(options = retrieve_options(), id='data-type'), # For styling commented: 
                 
                 html.Br(),
                 html.Label('Normative Model'),
@@ -192,7 +192,7 @@ app.layout = html.Div([
                 html.Br(),
                 html.Label('Email address for results: '),
                 html.Br(),
-                dcc.Input(value='pieter.barkema@donders.ru.nl', type='text', id='email_address', style={'width':'30%'}),         
+                dcc.Input(value='pieter.barkema@donders.ru.nl', type='text', id='email_address', style={'width':'40%'}),         
                 # -----------------------------------------------------------------
                 # The data submission and results retrieval section
                 html.Div(
@@ -258,7 +258,7 @@ app.layout = html.Div([
                             
                         
                     )
-            ], style={'margin':'auto','width':'80%','padding': 10, 'flex': 1}),
+            ], style={'margin':'auto','width':'60%', 'height': '60%', 'padding': 10, 'flex': 1}),
         ])
     ])
     )
@@ -273,7 +273,7 @@ app.layout = html.Div([
             html.Img(src='assets/pcn_logo.png', alt='image', style={'float': 'right','padding': '2%','height':'70%', 'width':'70%'})
         ]
     )
-], style={'display': 'flex', 'flex-direction': 'row', 'height': '80%', 'width': '60%', 'position': 'relative', 'top':'40%', 'left':'20%' })
+], style={'display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '65%', 'position': 'relative', 'top':'40%', 'left':'20%' })
 # -----------------------------------------------------------------
 # Functions that handle input and output for the Dash components.
 
@@ -412,13 +412,13 @@ def parse_contents(contents, filename, date):
         ])
     return df
 # Download the results with a button.
-@app.callback(
-    Output("download-dataframe-csv", "data"),
-    State("csv_store_session","data"),
-    Input("results_onclick", "n_clicks")
-)
-def download_results(results_csv, clicks):
-    return results_csv
+# @app.callback(
+#     Output("download-dataframe-csv", "data"),
+#     State("csv_store_session","data"),
+#     Input("results_onclick", "n_clicks")
+# )
+# def download_results(results_csv, clicks):
+#     return results_csv
 
 # List uploaded data files (1)
 @app.callback(
