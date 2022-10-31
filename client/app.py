@@ -23,6 +23,8 @@ import io, os, base64
 server = Flask(__name__)
 # Create  Dash app
 app = Dash(server=server, external_stylesheets=[dbc.themes.MATERIA]) #
+app.css.append_css({'external_url': '/static/template.css'})
+app.server.static_folder = 'static'
 
 def retrieve_options(data_type=None):
     import ast
@@ -30,10 +32,9 @@ def retrieve_options(data_type=None):
     chosen_dir = "models"
     if data_type is not None:
         chosen_dir = os.path.join("models", data_type)
-    username = os.environ['MYUSER']
     py_script = os.path.join(os.environ['PROJECTDIR'], os.environ['SCRIPTDIR'], os.environ['LISTDIR'])
 
-    list_dirs = ["ssh", "-o", "StrictHostKeyChecking=no", username, "python", py_script, str(chosen_dir)]
+    list_dirs = ["ssh", "-o", "StrictHostKeyChecking=no", os.environ['MYUSER'], "python", py_script, str(chosen_dir)]
     # ssh -o StrictHostKeyChecking=no ***REMOVED*** python ***REMOVED***/list_subdirs.py "models"
     #test ssh: ["ssh", "-o", "StrictHostKeyChecking=no", "***REMOVED***", "python", "***REMOVED***/list_subdirs.py", "models"]#
     p = Popen(list_dirs, stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -49,89 +50,30 @@ def retrieve_options(data_type=None):
 
 # -----------------------------------------------------------------
 # The entire contents of the app.
-app.layout = html.Div([
+app.layout = html.Div([ 
+    html.Div([
     dbc.Col(
     dcc.Tabs([
+        #!["A pretty tiger"](https://github.com/predictive-clinical-neuroscience/braincharts/blob/master/docs/image_files/ThickAvg_BLR_lifespan_age.png?raw=true)
         dcc.Tab(label='Home', children=[
             html.Br(),
             html.Div(
-                #!["A pretty tiger"](https://github.com/predictive-clinical-neuroscience/braincharts/blob/master/docs/image_files/ThickAvg_BLR_lifespan_age.png?raw=true)
-                dcc.Markdown('''
-                
-                ### Fuss-free normative modelling
-                <img src="https://github.com/predictive-clinical-neuroscience/braincharts/blob/master/docs/image_files/ThickAvg_BLR_lifespan_age.png?raw=true" alt="Employee data" width="500" height="600" title="Employee Data title">
-                
-                Our [Predictive Clinical Neuroscience group](https://predictiveclinicalneuroscience.com/) at the Donders Institute and RadboudUMC develops normative models to predict and stratify brain disorders on the basis of neuroimaging data. 
-
-                Clinical heterogeneity makes case-control studies insufficient to fully understand brain dysfunction, and normative models are a highly effective way to deal with this individual variability. These models can be developed using our [PCNtoolkit](https://github.com/amarquand/PCNtoolkit): a highly flexible modeling framework that can handle multi-site data, and only requires knowledge of basic Python programming to implement. Nevertheless, developing high-quality normative models takes considerable resources. Moreover, large neuroimaging data sets are necessary to harness the power of normative models which forms a considerable bottleneck, as for all big data models.
-
-                This website makes it trivial to use pre-trained normative models, trained on tens of thousands of brain images from many different data collection sites. You can now make use of all of our available models in a few clicks, requiring no technical background or compute power, and only a data set of choice. With minimal effort, you can derive subject level statistics for further analysis and find out how well your neural biomarkers match the normative patterns we provide as a function of  covariates such as age and gender.
-               
-                Happy modelling!
-
-                _Learn more about normative modelling, and how to develop your own models with PCNtoolkit [here](https://pcntoolkit.readthedocs.io/en/latest/pages/pcntoolkit_background.html)._
-
-                
-                _**Disclaimer:** this application strives to comply with best practices in data protection including relevant European and International laws (including GDPR). By submitting your pseudoanonymised imaging data on our website, you give permission to process your data. Data will be removed from our system within 30 days. At this time, no warranty is provided and these normative models should purely be used for scientific investigations and explorations. They have not been approved for clinical applications, although this is a future goal._
-
-            ''', link_target="_blank", dangerously_allow_html=True), style={'margin':'auto','width':"80%", 'height':"20%"}
+                dcc.Markdown(id='home-readme', dangerously_allow_html=True), style={'margin':'auto','width':"80%"}
             )
         ]),
         dcc.Tab(label='How to Model', children=[
             html.Br(),
             html.Div(
-                
-                dcc.Markdown('''
-
-                ### How do I model my data?
-                First, we explore what normative model is best for you.
-                - Go to the ‘Model information’ tab to explore the model name syntax
-                - Then, go to the 'Compute here!' tab and select the data type you'll be using
-                - From the ‘Normative Model’ dropdown menu, select a model to view model-specific information on training data and hyperparameters
-                - Choose a model according to your preferences
-
-                Then, the data should be properly prepared.
-                - From the model-specific information, download the provided template .csv (more data types will be supported in the future)
-                - Ensure that your datasets match the provided column names
-                - Split your data into an adaptation and test set according to your preferred split
-                - Upload your adaptation and test data in the right boxes.
-
-                Submit your computation request!
-                - Enter the email address to receive your downloadable results.
-                - Press ‘submit’. Congratulations!
-
-                What happens next?
-                - Your session ID will now be provided after submission is complete. Copy & save it somewhere in case you would like to request help with troubleshooting.
-                - Within several hours, you should receive an email in your inbox with a link to download your results and model-related error measures.
-                - Please be patient: the waiting time may vary according to model choice, data set and network traffic. Wait for 24 hours before requesting support.
-
-
-                
-            ''', link_target="_blank"), style={'margin':'auto','width':"80%"}
+                dcc.Markdown(id="howto-readme"), style={'margin':'auto','width':"80%"}
             )
         ]
         ),
         dcc.Tab(label='Model information', children=[
             html.Br(),
             html.Div(
-                dcc.Markdown(
-                            '''
-                Here you can find general information about our available models. The models have been trained on extensive data sets with thorough parameter tuning. A subset of these models have also formed the basis of published work.
-                The model names contain information of their learning configurations, and can be viewed per data type. **Model-specific information is provided upon choosing a model from the dropdown menu.**
-                
-                The model name consists of the syntax alg_name_sample_sites, where:
-                * alg = algorithm (options: HBR, BLR)
-                * name = description of the model type
-                * sample = training sample size (e.g. 82K is 82.000 subjects)
-                * sites = amount of unique training sites
-                
-                The data types currently supported are:
-                [list directories of data types here]
-
-            ''', style={'margin':'auto','width':"80%"}
+                dcc.Markdown(id="modelinfo-readme", style={'margin':'auto','width':"80%"}
             )
             )
-
         ]),
         dcc.Tab(label='Compute here!', id='modelling',
         
@@ -141,7 +83,7 @@ app.layout = html.Div([
                 # -----------------------------------------------------------------
                 html.Br(),
                 html.Label('Data type'),
-                dcc.Dropdown(options = retrieve_options(), id='data-type'), # For styling commented: 
+                dcc.Dropdown(options = retrieve_options(), id='data-type'), # For styling commented: retrieve_options()
                 
                 html.Br(),
                 html.Label('Normative Model'),
@@ -192,7 +134,7 @@ app.layout = html.Div([
                 html.Br(),
                 html.Label('Email address for results: '),
                 html.Br(),
-                dcc.Input(value='pieter.barkema@donders.ru.nl', type='text', id='email_address', style={'width':'40%'}),         
+                dcc.Input(value='', type='text', id='email_address', style={'width':'40%'}),         
                 # -----------------------------------------------------------------
                 # The data submission and results retrieval section
                 html.Div(
@@ -255,27 +197,46 @@ app.layout = html.Div([
                         children=[
                             html.Plaintext(id="submitted")
                         ]
-                            
-                        
-                    )
-            ], style={'margin':'auto','width':'60%', 'height': '60%', 'padding': 10, 'flex': 1}),
-        ])
-    ])
+                       ),
+                    html.Br(), 
+                    html.Br(), 
+                    html.Br(), 
+            ], style={'margin':'auto', 'width':'75%', 'flex': 1}),
+        ]),
+    
+    ])#, style={'padding': '5%'}),
     )
     ,
     html.Div(
-        style={'padding':'5%','position': 'absolute', 'left': '75%', 'top': '100%'},#'width': '5%', 'height': '5%', 
+        style={'padding':'1%','position': 'absolute', 'left': '85%', 'top': '100%', 'height':'15%', 'width':'15%'},#'width': '5%', 'height': '5%', 
         children=[
-            html.Img(src='assets/wellcome_logo.png', alt='image', style={'float': 'right', 'padding': '2%','height':'50%', 'width':'50%'}),
-            html.Img(src='assets/erc_logo.png', alt='image', style={'float': 'right','padding': '2%','height':'50%', 'width':'50%'}),
+            html.Img(id="load-readme-trigger",src='assets/wellcome_logo.png', alt='image', style={'float': 'right', 'padding': '0%','height':'45%', 'width':'45%'}),
+            html.Img(src='assets/erc_logo.png', alt='image', style={'float': 'right','padding': '0%','height':'55%', 'width':'50%'}),
             html.Br(),
-            html.Img(src='assets/donders_logo.png', alt='image', style={'float': 'right','padding': '2%','height':'70%', 'width':'70%'}),
-            html.Img(src='assets/pcn_logo.png', alt='image', style={'float': 'right','padding': '2%','height':'70%', 'width':'70%'})
+            html.Img(src='assets/donders_logo2.svg', alt='image', style={'float': 'right','padding': '0%','height':'50%', 'width':'60%'}),
+            html.Img(src='assets/pcn_logo.png', alt='image', style={'float': 'right','padding': '0%','height':'30%', 'width':'80%'}),
         ]
     )
-], style={'display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '65%', 'position': 'relative', 'top':'40%', 'left':'20%' })
+], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white', 'opacity':'0.92'})
+])#, style={'backgroundColor':'blue'}
 # -----------------------------------------------------------------
 # Functions that handle input and output for the Dash components.
+
+@app.callback(
+    Output(component_id='home-readme', component_property='children'),
+    Output(component_id='howto-readme', component_property='children'),
+    Output(component_id='modelinfo-readme', component_property='children'),
+    Input(component_id='load-readme-trigger', component_property='children'),
+    prevent_initial_call=False
+)
+def load_tabs_markdown(load_readme_trigger):
+    with open('assets/home.md', 'r') as mdfile:
+        home = mdfile.readlines()
+    with open('assets/howto.md', 'r') as mdfile:
+        howto = mdfile.readlines()
+    with open('assets/modelinfo.md', 'r') as mdfile:
+        modelinfo = mdfile.readlines()
+    return home, howto, modelinfo
 
 # Function for writing out model information markdown files
 @app.callback(
@@ -291,10 +252,7 @@ def model_information(model_selection, data_type):
     # model_path = 
     # ssh -o StrictHostKeyChecking=no ***REMOVED*** cat ***REMOVED***/models/ThickAvg/BLR_lifespan_57K_82sites/test_README.md
     print(f'{model_path=}')
-    # testing
-    # with open('assets/README.md', 'r') as mdfile:
-    #     readme = mdfile.readlines()
-    #     return readme
+
     cat_readme = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", model_path]
     p = Popen(cat_readme, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, _ = p.communicate()
@@ -376,15 +334,12 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
         #removed /idp_results from {session_dir}
         session_dir = os.path.join(projectdir, "sessions", session_id).replace("\\","/")
         scp = 'ssh -o "StrictHostKeyChecking=no" {username} mkdir -p {session_dir} && scp -o "StrictHostKeyChecking=no" {test} {adapt} {username}:{session_dir}'.format(username = username, session_dir = session_dir, test=test_path, adapt=adapt_path)
-        testscp = 'ssh -o "StrictHostKeyChecking=no" ***REMOVED*** mkdir -p {session_dir} && scp -o "StrictHostKeyChecking=no" {test} {adapt} ***REMOVED***:***REMOVED***/sessions/f218a52645724b1fa7400e3c4248d876'.format(session_dir = session_dir, test=test_path, adapt=adapt_path)
         subprocess.call(scp, shell=True)
         algorithm = model_name.split("_")[0]
         # os path join does something strange with attaching two paths
-        bash_path = os.path.join(projectdir, scriptdir, executefile).replace("\\","/") #"***REMOVED***/***REMOVED***/execute_modelling.sh"#
-        print(f'{scp=},{testscp=}')
+        bash_path = os.path.join(projectdir, scriptdir, executefile).replace("\\","/") 
         execute = 'ssh -o "StrictHostKeyChecking=no" {user} {bash_path} {projectdir} {model_name} {data_type_dir} {session_id} {algorithm} {email_address}'.format(user=username, bash_path=bash_path, projectdir = projectdir, model_name=model_name, data_type_dir = data_type_dir, session_id=session_id, algorithm=algorithm, email_address = email_address) 
-        testexecute = 'ssh -o "StrictHostKeyChecking=no" ***REMOVED*** ***REMOVED***/***REMOVED***/execute_modelling.sh "***REMOVED***" "Somemodel" "ThickAvg" "f218a52645724b1fa7400e3c4248d876" "Somemodel" "pieter.barkema@donders.ru.nl"'
-        #print(f'{execute=}, {testexecute=}')
+    
         subprocess.call(execute, shell=True)
 
         finished_message = "Your computation request has been sent with session id: {session_id}".format(session_id=session_id)
