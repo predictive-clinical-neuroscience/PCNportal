@@ -16,10 +16,11 @@ def send_results(session_id, email_address):#results_path #session_id="session_i
     #zip_name =  the optional subdir within projects folder that contain a session's results.
     zip_name = "results.zip"
 
+    
+
     # what results do we want to use?
-    filter = lambda name : 'Z_' in name
-    print(f'{session_path=}')
-    zipper(session_path, zip_name, filter)
+    #filter = lambda name : 'Z_' in name
+    zipper(session_path, zip_name) #filter
     
     upload_results(from_path, session_id)
     email_results(session_id, email_address)
@@ -77,7 +78,7 @@ def upload_results(from_path, session_id):
     to_path = remote_session + "/results.zip"
     client.upload_sync(remote_path = to_path, local_path = from_path)
 
-def zipper(dirName, zipFileName, filter): #filter
+def zipper(dirName, zipFileName): #filter
     from zipfile import ZipFile
     import os
     from os.path import basename
@@ -89,9 +90,14 @@ def zipper(dirName, zipFileName, filter): #filter
             
         #     for filename in filenames:
         for filename in os.listdir(dirName):
-            if filter(filename):
+            if filter_results(filename):
                 # create complete filepath of file in directory
                 #filePath = os.path.join(folderName, filename)
                 # Add file to zip
                 zipObj.write(filename, filename)
+def filter_results(filename):
+    measures = ["Z_", "SMSE_", "RMSE_", "Rho_", "pRho_", "MSLL_", "EXPV_"]
+    for measure_type in measures:
+        if measure_type in filename:
+            return True
 #send_results()
