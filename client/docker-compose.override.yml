@@ -7,8 +7,8 @@
        - network
      build: 
        context: ./
-     container_name: PCNonline_dash_local
-     hostname: PCNonline_dash_local
+     container_name: PCNportal
+     hostname: PCNportal
  networks:
    network:
      driver: bridge
