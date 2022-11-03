@@ -8,9 +8,10 @@
 
 # Activate our virtual environment.
 # Activate pcntoolkit devel environment, preferred syntax above conda activate
+cd ***REMOVED***
 module load "anaconda3/2021.05"
 source activate remotepcn
 # Ensure working directory is our project.
-cd ***REMOVED*** 
+#cd ***REMOVED*** 
 echo "Bash script activated..."
-python ***REMOVED***/transfer_normative_models_online.py $1 $2 $3 $4 $5 $6
+python ***REMOVED***/***REMOVED***/transfer_normative_models_online.py $1 $2 $3 $4 $5 $6
