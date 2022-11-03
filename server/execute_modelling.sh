@@ -8,9 +8,10 @@
 
 # Activate our virtual environment.
 # Activate pcntoolkit devel environment, preferred syntax above conda activate
+cd /project_cephfs/3022051.01
 module load "anaconda3/2021.05"
 source activate remotepcn
 # Ensure working directory is our project.
-cd /project_cephfs/3022051.01 
+#cd /project_cephfs/3022051.01 
 echo "Bash script activated..."
-python /project_cephfs/3022051.01/transfer_normative_models_online.py $1 $2 $3 $4 $5 $6
+python /project_cephfs/3022051.01/test_scripts/server/transfer_normative_models_online.py $1 $2 $3 $4 $5 $6
