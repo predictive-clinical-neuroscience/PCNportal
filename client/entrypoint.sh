@@ -8,5 +8,5 @@ if [ ! -f ~/.ssh/id_rsa ]; then
   echo "copy the following content to ~/.ssh/authorized_keys"
   cat ~/.ssh/id_rsa.pub
 fi
-
+env > /tmp/env.txt
 gunicorn --timeout=1000 --workers=5 --threads=1 -b 0.0.0.0:80 app:server
