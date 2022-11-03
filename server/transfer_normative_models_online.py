@@ -11,14 +11,15 @@ The purpose of this script is to act as frontend for normative.transfer for all 
 """
 
 
+from socket import IPV6_DSTOPTS
+
+
 def transfer_normative_models():
     import os, sys
     import numpy as np
     import pandas as pd
     import pickle
     import pcntoolkit as ptk
-    sys.path.append("/project_cephfs/3022051.01/training_hbr_models/")
-    from utilities import prepare_model_inputs, remove_bad_subjects, create_dummy_inputs
     import os, sys
     import pandas as pd
     import pickle
@@ -29,11 +30,9 @@ def transfer_normative_models():
     model_name= sys.argv[2]#"HBR_models_self_trained"#"HBR_HOM_linear_0.20"##
     data_type = sys.argv[3]#"ThickAvg"##
     session_id = sys.argv[4]#"session_id" + str(random.randint(100000,999999))##
-    print(f'{session_id=}')
     alg = model_name.split("_")[0]
-    print(f'{alg=}')
     email_address = sys.argv[6]#"pieterwbarkema@gmail.com" # #
-    
+    model_info_path = os.path.join(root_dir, "models", data_type, model_name)
     model_path = os.path.join(root_dir, "models", data_type, model_name, "Models")
 
     session_path = os.path.join(root_dir, "sessions", session_id) +"/"
@@ -55,31 +54,16 @@ def transfer_normative_models():
         df_ad['sitenum'].loc[df_ad['site'] == s] = int(i)
     #adaptation_data['sitenum'] = adaptation_data['sitenum'].astype(int)
 
-    site_names = 'site_ids_82sites.txt'
-
-    # could this be fed in by Dash?
-    cols_cov = ['age', 'sex']
-    # could this be fed in by Dash, dependent on input data?
-    #idps = ['rh_MeanThickness_thickness']
-
-    # load a set of site ids from this model. This must match the training data
-    # get this for the new models?
-    with open(os.path.join(root_dir,'docs', site_names)) as f:
+    # Load idps and test ids
+    site_names = 'site_ids.txt'
+    with open(os.path.join(model_info_path, site_names)) as f:
         site_ids_tr = f.read().splitlines()
-
     # extract a list of unique site ids from the test set
     site_ids_te =  sorted(set(df_te['site'].to_list()))
 
-    # Select idps here
-    # load the list of idps for left and right hemispheres, plus subcortical regions
-    with open(os.path.join(root_dir,'docs','phenotypes_lh.txt')) as f:
-        idp_ids_lh = f.read().splitlines()
-    with open(os.path.join(root_dir,'docs','phenotypes_rh.txt')) as f:
-        idp_ids_rh = f.read().splitlines()
-    with open(os.path.join(root_dir,'docs','phenotypes_lh.txt')) as f:
-         idp_ids_sc = f.read().splitlines()
-    # we choose here to process all idps
-    idps = idp_ids_lh + idp_ids_rh + idp_ids_sc
+    # test response variables
+    with open(os.path.join(model_info_path,'idp_ids.txt')) as f:
+        idps = f.read().splitlines()
     testing_sample = 10
     idps = idps[:testing_sample]
     print(f'{idps=}')
@@ -89,21 +73,15 @@ def transfer_normative_models():
     with open(resp_file_te, 'wb') as file:
         pickle.dump(pd.DataFrame(y_te), file)
 
-    # ok to use pandas instead of fileio?
     import pandas as pd 
-    # blr specific arguments
-
+    cols_cov = ['age', 'sex']
     if alg == "BLR":
         from pcntoolkit.util.utils import create_design_matrix
-            # create design matrix arguments; should these be mutable?
         # limits for cubic B-spline basis 
         xmin = -5 
         xmax = 110
-
-        # NOTE: hardcoded way to get all site ids from training data, same as done in apply_norm
-        # better way to do this?
-        site_names = 'site_ids_82sites.txt'
-        with open(os.path.join(root_dir,'docs', site_names)) as f:
+        # test covariates blr
+        with open(os.path.join(model_info_path, site_names)) as f:
             site_ids_tr = f.read().splitlines()
         x_te = create_design_matrix(df_te[cols_cov], 
                                         site_ids = df_te['site'],
@@ -112,12 +90,12 @@ def transfer_normative_models():
                                         xmin = xmin, 
                                         xmax = xmax)
     elif alg == "HBR":
+        # test covariates hbr
         x_te = df_te[cols_cov].to_numpy(dtype=float)
     cov_file_te = os.path.join(session_path, 'cov_bspline_te.pkl')
     with open(cov_file_te, 'wb') as file:
         pickle.dump(pd.DataFrame(x_te), file)
 
-    # Save the adaptation data, provide the test data directly.
     if all(elem in site_ids_tr for elem in site_ids_te):        
     # just make predictions
         yhat_te, s2_te, Z = ptk.normative.predict(cov_file_te, 
@@ -130,6 +108,7 @@ def transfer_normative_models():
         sitenum_file_te = os.path.join(session_path, 'sitenum_te.pkl')  
         sitenum_file_ad = os.path.join(session_path, 'sitenum_ad.pkl')
         output_path = os.path.join(session_path, 'Transfer/') 
+        # adaptation covariates blr
         if alg == "BLR":
             x_ad = create_design_matrix(df_ad[cols_cov], 
                                             site_ids = df_ad['site'],
@@ -137,21 +116,20 @@ def transfer_normative_models():
                                             basis = 'bspline', 
                                             xmin = xmin, 
                                             xmax = xmax)
+        # adaptation covariates hbr
         elif alg == "HBR":
             x_ad = df_ad[cols_cov].to_numpy(dtype=float)
-        # save the responses and cov for the adaptation data
+        # save adaptation covariates
         with open(cov_file_ad, 'wb') as file:
             pickle.dump(pd.DataFrame(x_ad), file)
+        # save adaptation response variables
         y_ad = df_ad[idps].to_numpy(dtype=float)
-        print(f'{y_ad.shape=},{len(idps)=}')
         with open(resp_file_ad, 'wb') as file:
             pickle.dump(pd.DataFrame(y_ad), file)
-        # save the site ids for the adaptation and test data
-        # this has to be right format for both hbr and blr's design matrix
-        # create design matrix requested site... hbr requests sitenum?
+
+        # test and adaptation batch effects
         site_num_ad = df_ad['sitenum']
         site_num_te = df_te['sitenum']
-        #print(f'{site_num_ad=},{site_num_te=}')
         with open(sitenum_file_ad, 'wb') as file:
             pickle.dump(site_num_ad, file)
         with open(sitenum_file_te, 'wb') as file:
@@ -162,7 +140,6 @@ def transfer_normative_models():
 
         # parallelization
         batch_size = int(np.sqrt(testing_sample))
-        print(f'{batch_size=}')
         memory = '4gb'
         duration = '2:00:00'
         outputsuffix = '_transfer'
@@ -180,9 +157,7 @@ def transfer_normative_models():
         ########################## Setting up the Paths and Model #####################
 
         job_name = model + '_'  + method 
-        #processing_dir = path + job_name + '/'
         log_dir = session_path + '/log/'
-        print(f'{log_dir}')
         
         if not os.path.isdir(log_dir):
             os.mkdir(log_dir) 
@@ -192,10 +167,7 @@ def transfer_normative_models():
             hetero_noise = 'False'
         else:
             hetero_noise = 'True'
-        #normative_path = "/home/preclineu/piebar/transform_nm_tests/PCNtoolkit/pcntoolkit/normative.py"
-        # how to deal with input data
-        # howt o deal with model path
-        measure = 'ThickAvg'
+        measure = data_type
         # probably for estimation only, can be deleted?
         # data_path = '/project_cephfs/3022017.02/projects/lifespan_hbr/Data/'
         # with open(data_path + measure + '.pkl', 'rb') as file:
