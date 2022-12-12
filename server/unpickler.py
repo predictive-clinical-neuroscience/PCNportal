@@ -1,4 +1,11 @@
 import pandas as pd
-path="/project_cephfs/3022051.01/sessions/7f56f51ac9c0475cbe0b15fb1721c7c9/sitenum_te.pkl"
+path="/project_cephfs/3022051.01/sessions/67700178ffb844f891891c63e10924e9/Z_transfer.pkl"
 x = pd.read_pickle(path)
-print(x.head(n=100))
+#print(x.0)
+import matplotlib.pyplot as plt
+for i in range(10):
+    plt.clf()
+    t= x.iloc[:, i]
+    fig, ax = plt.subplots()
+    ax.hist(t)
+    plt.show()
