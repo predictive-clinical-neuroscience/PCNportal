@@ -22,9 +22,10 @@ import io, os, base64
 # Create a flask server
 server = Flask(__name__)
 # Create  Dash app
-app = Dash(server=server, external_stylesheets=[dbc.themes.MATERIA]) #
-app.css.append_css({'external_url': '/static/template.css'})
-app.server.static_folder = 'static'
+app = Dash(server=server, external_stylesheets=[dbc.themes.MATERIA], title='PCNportal') #
+app.title="PCNportal"
+#app.css.append_css({'external_url': '/static/template.css'})
+#app.server.static_folder = 'static'
 
 def retrieve_options(data_type=None):
     import ast
@@ -58,21 +59,21 @@ app.layout = html.Div([
         dcc.Tab(label='Home', children=[
             html.Br(),
             html.Div(
-                dcc.Markdown(id='home-readme', dangerously_allow_html=True), style={'margin':'auto','width':"80%"}
+                dcc.Markdown(id='home-readme', link_target="_blank", dangerously_allow_html=True), style={'margin':'auto','width':"80%"}
             )
         ]),
         dcc.Tab(label='How to Model', children=[
             html.Br(),
             html.Div(
-                dcc.Markdown(id="howto-readme"), style={'margin':'auto','width':"80%"}
+                dcc.Markdown(id="howto-readme", link_target="_blank",), style={'margin':'auto','width':"80%"}
             )
         ]
         ),
         dcc.Tab(label='Model information', children=[
             html.Br(),
             html.Div(
-                dcc.Markdown(id="modelinfo-readme", style={'margin':'auto','width':"80%"}
-            )
+                dcc.Markdown(id="modelinfo-readme", link_target="_blank",), style={'margin':'auto','width':"80%"}
+            
             )
         ]),
         dcc.Tab(label='Compute here!', id='modelling',
@@ -88,7 +89,8 @@ app.layout = html.Div([
                 html.Br(),
                 html.Label('Normative Model'),
                 dcc.Dropdown( options = [], value = 'please select data type first', id='model-selection'), #"please select data type first..."
-                dcc.Markdown(id="model-readme"), 
+                html.Br(),
+                dcc.Markdown(id="model-readme", link_target="_blank"), 
                 html.Br(),
                 html.Label('Select data format'),
                 dcc.Dropdown(['.csv'], '.csv'), #['.csv', 'NIFTI', '[other formats]']
@@ -208,13 +210,13 @@ app.layout = html.Div([
     )
     ,
     html.Div(
-        style={'padding':'1%','position': 'absolute', 'left': '85%', 'top': '100%', 'height':'15%', 'width':'15%'},#'width': '5%', 'height': '5%', 
+        style={'padding':'1%','position': 'absolute', 'left': '85%', 'top': '100%'},#'width': '5%', 'height': '5%', 
         children=[
-            html.Img(id="load-readme-trigger",src='assets/wellcome_logo.png', alt='image', style={'float': 'right', 'padding': '0%','height':'45%', 'width':'45%'}),
-            html.Img(src='assets/erc_logo.png', alt='image', style={'float': 'right','padding': '0%','height':'55%', 'width':'50%'}),
-            html.Br(),
-            html.Img(src='assets/donders_logo2.svg', alt='image', style={'float': 'right','padding': '0%','height':'50%', 'width':'60%'}),
-            html.Img(src='assets/pcn_logo.png', alt='image', style={'float': 'right','padding': '0%','height':'30%', 'width':'80%'}),
+            html.Img(id="load-readme-trigger",src='assets/merged_images.png', alt='image', style={'float': 'right', 'padding': '0%','height':'130%', 'width':'130%'}),
+            # html.Img(src='assets/erc_logo.png', alt='image', style={'float': 'right','padding': '0%','height':'55%', 'width':'50%'}),
+            # html.Br(),
+            # html.Img(src='assets/donders_logo2.svg', alt='image', style={'float': 'right','padding': '0%','height':'50%', 'width':'60%'}),
+            # html.Img(src='assets/pcn_logo.png', alt='image', style={'float': 'right','padding': '0%','height':'30%', 'width':'80%'}),
         ]
     )
 ], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white', 'opacity':'0.92'})
@@ -332,9 +334,13 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
         scriptdir = os.environ['SCRIPTDIR'] #"***REMOVED***"
         executefile = os.environ['EXECUTEFILE']#"execute_modelling.sh"#
         #removed /idp_results from {session_dir}
-        session_dir = os.path.join(projectdir, "sessions", session_id).replace("\\","/")
-        scp = 'ssh -o "StrictHostKeyChecking=no" {username} mkdir -p {session_dir} && scp -o "StrictHostKeyChecking=no" {test} {adapt} {username}:{session_dir}'.format(username = username, session_dir = session_dir, test=test_path, adapt=adapt_path)
+        remote_session_dir = os.path.join(projectdir, "sessions", session_id).replace("\\","/")
+        scp = 'ssh -o "StrictHostKeyChecking=no" {username} mkdir -p {remote_session_dir} && scp -o "StrictHostKeyChecking=no" {test} {adapt} {username}:{remote_session_dir}'.format(username = username, remote_session_dir = remote_session_dir, test=test_path, adapt=adapt_path)
+        finished_message = "We sent your request with session ID: {session_id}".format(session_id=session_id)
+        print(f'{session_path=}')
+        remove_temp_session = 'rm -r {session_path}'.format(session_path = session_path)
         subprocess.call(scp, shell=True)
+        subprocess.call(remove_temp_session, shell=True)
         algorithm = model_name.split("_")[0]
         # os path join does something strange with attaching two paths
         bash_path = os.path.join(projectdir, scriptdir, executefile).replace("\\","/") 
@@ -342,7 +348,7 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
     
         subprocess.call(execute, shell=True)
 
-        finished_message = "Your computation request has been sent with session id: {session_id}".format(session_id=session_id)
+        
 
         return finished_message
 
