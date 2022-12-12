@@ -139,7 +139,7 @@ def transfer_normative_models():
         inputsuffix = 'fit'
 
         # parallelization
-        batch_size = int(np.sqrt(testing_sample))
+        batch_size = int(testing_sample**(1/3))
         memory = '4gb'
         duration = '2:00:00'
         outputsuffix = '_transfer'
