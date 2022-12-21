@@ -12,3 +12,4 @@ six
 Werkzeug
 gunicorn
 dash-bootstrap-components
+dash-extensions
