@@ -1,6 +1,8 @@
  version: '3.7'
  services:
    dashboard:
+    #  volumes:
+    #    - C:\Users\piebar\Documents\GitHub\pcnonlinedev\client\.ssh:/root/.ssh
      ports:
        - 5000:80
      networks:

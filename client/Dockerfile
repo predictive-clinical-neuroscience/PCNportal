@@ -13,7 +13,7 @@ RUN mkdir sessions
 COPY app.py ./app.py
 COPY assets ./assets
 COPY .ssh /root/.ssh
-RUN chmod -R 600 /root/.ssh
+RUN chmod -R 600 /root/
 # Runs gunicorn and SSH
 COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
