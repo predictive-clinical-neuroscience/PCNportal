@@ -13,6 +13,7 @@
 
 from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
+from dash_extensions.enrich import MultiplexerTransform, DashProxy
 import pandas as pd
 from subprocess import PIPE, Popen, run, call, check_output
 from flask import Flask
@@ -22,7 +23,7 @@ import io, os, base64
 # Create a flask server
 server = Flask(__name__)
 # Create  Dash app
-app = Dash(server=server, external_stylesheets=[dbc.themes.MATERIA], title='PCNportal') #
+app = DashProxy(server=server, external_stylesheets=[dbc.themes.MATERIA], title='PCNportal',transforms=[MultiplexerTransform()]) #
 app.title="PCNportal"
 #app.css.append_css({'external_url': '/static/template.css'})
 #app.server.static_folder = 'static'
@@ -88,7 +89,7 @@ app.layout = html.Div([
                 
                 html.Br(),
                 html.Label('Normative Model'),
-                dcc.Dropdown( options = [], value = 'please select data type first', id='model-selection'), #"please select data type first..."
+                dcc.Dropdown(['please select data type first...'], 'please select data type first...', id='model-selection'), #"please select data type first..."
                 html.Br(),
                 dcc.Markdown(id="model-readme", link_target="_blank"), 
                 html.Br(),
@@ -179,7 +180,7 @@ app.layout = html.Div([
                         html.Div(
                             style={'float':'right'},
                             children=[
-                                html.Button("Submit", id="btn_csv"),
+                                html.Button("Submit", id="btn_csv", disabled=True),
                                 #html.Plaintext(id="submitted"),
 
                                 # To-do: make it downloadable onclick. this works together with disable_download also commented out.
@@ -219,7 +220,7 @@ app.layout = html.Div([
             # html.Img(src='assets/pcn_logo.png', alt='image', style={'float': 'right','padding': '0%','height':'30%', 'width':'80%'}),
         ]
     )
-], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white', 'opacity':'0.92'})
+], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'})#, 'opacity':'1.00
 ])#, style={'backgroundColor':'blue'}
 # -----------------------------------------------------------------
 # Functions that handle input and output for the Dash components.
@@ -283,9 +284,27 @@ def update_dp(data_type):
     model_selection_list = retrieve_options(data_type)
     return model_selection_list
 
+# Create a function that only enables Submit button when all fields are non-zero
+@app.callback(
+    Output("btn_csv", "disabled"),
+    Input("email_address", "value"),
+    Input("data-type", "value"),
+    Input("model-selection", "value"),
+    Input("Upl_1", "filename"),
+    Input("Upl_2", "filename")
+)
+def enable_submission(email_address, data_type, model_selection, Upl_1, Upl_2):
+    # Check if all input is non-zero if so: enable button
+    # better to have an informative popup than a non available button
+    if email_address=="" or data_type=="" or model_selection=="" or Upl_1=="" or Upl_2 =="":
+        return True
+    else: return False
+
+
 # Load data into the model and store the .csv results on the website.
 @app.callback(
     Output("submitted", "children"),
+    Output("btn_csv", "disabled"),
     State("email_address", "value"),
     State("data-type", "value"),
     State("model-selection", "value"),
@@ -302,7 +321,7 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
                   contents_adapt, name_adapt, date_adapt, clicks):
     
     # TO-DO this if could use an 'else'. We can do data checking here too. 
-    if contents_test is not None and contents_adapt is not None:
+    if email_address!="" and data_type_dir !="" and model_name !='please select data type first...' and name_test !="" and name_adapt !="":
         import subprocess
         # Convert input csv data to pandas
         test_data_pd = parse_contents(contents_test, name_test, date_test)
@@ -350,7 +369,8 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
 
         
 
-        return finished_message
+        return finished_message, True
+    # Else: exception: empty fields
 
 # Convert input .csv to pandas dataframe
 # TO-DO: scp could be here as well, we don't really need dataframe of the input data
