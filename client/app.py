@@ -11,9 +11,10 @@
         # retcode = subprocess.call(cmd,shell=True)
         # os.chdir("")
 
-from dash import Dash, html, dcc, Input, Output, State
+from dash import Dash, html, dcc, Input, Output, State, no_update
 import dash_bootstrap_components as dbc
 from dash_extensions.enrich import MultiplexerTransform, DashProxy
+from dash.exceptions import PreventUpdate
 import pandas as pd
 from subprocess import PIPE, Popen, run, call, check_output
 from flask import Flask
@@ -83,9 +84,12 @@ app.layout = html.Div([
             html.Div(children=[
             
                 # -----------------------------------------------------------------
+                dcc.Store(id='session_id', data=""),
+                dcc.Store(id='previous_request', data=[]),
+                #dcc.Store(id='submit_bool', data='False'),
                 html.Br(),
                 html.Label('Data type'),
-                dcc.Dropdown(options = retrieve_options(), id='data-type'), # For styling commented: retrieve_options()
+                dcc.Dropdown(options = retrieve_options(), id='data-type'), # For styling commented: 
                 
                 html.Br(),
                 html.Label('Normative Model'),
@@ -93,8 +97,8 @@ app.layout = html.Div([
                 html.Br(),
                 dcc.Markdown(id="model-readme", link_target="_blank"), 
                 html.Br(),
-                html.Label('Select data format'),
-                dcc.Dropdown(['.csv'], '.csv'), #['.csv', 'NIFTI', '[other formats]']
+                html.Label('Select data file format'),
+                dcc.Dropdown(['.csv'], '.csv', id='file-format'), #['.csv', 'NIFTI', '[other formats]']
 
                 html.Br(),
                 html.Hr(),
@@ -180,15 +184,7 @@ app.layout = html.Div([
                         html.Div(
                             style={'float':'right'},
                             children=[
-                                html.Button("Submit", id="btn_csv", disabled=True),
-                                #html.Plaintext(id="submitted"),
-
-                                # To-do: make it downloadable onclick. this works together with disable_download also commented out.
-                                # Download your predictions in .csv format!
-                                #html.Button("Download", id="results_onclick", disabled=True),
-                                # Store the results files so they can be downloaded on click, not instantly
-                                #dcc.Store(id="csv_store_session", storage_type="session"),
-                                #dcc.Download(id="download-dataframe-csv")
+                                html.Button("Submit", id="btn_csv", disabled=False),
                             ]
                         )
                         ]
@@ -196,14 +192,18 @@ app.layout = html.Div([
                     ),
                 
                     html.Div(
-                        style={'float':'right'},
+                        
+                        style={'float':'center'},
                         children=[
-                            html.Plaintext(id="submitted")
+                            html.Br(),
+                            dbc.Alert(id="loading_or_error", is_open=False,
+                            children="Your computation request is being submitted..."),
+                            dbc.Alert(id="completed", is_open=False, color='success'),
+                            html.Br(),
                         ]
+                        
                        ),
-                    html.Br(), 
-                    html.Br(), 
-                    html.Br(), 
+
             ], style={'margin':'auto', 'width':'75%', 'flex': 1}),
         ]),
     
@@ -214,10 +214,6 @@ app.layout = html.Div([
         style={'padding':'1%','position': 'absolute', 'left': '85%', 'top': '100%'},#'width': '5%', 'height': '5%', 
         children=[
             html.Img(id="load-readme-trigger",src='assets/merged_images.png', alt='image', style={'float': 'right', 'padding': '0%','height':'130%', 'width':'130%'}),
-            # html.Img(src='assets/erc_logo.png', alt='image', style={'float': 'right','padding': '0%','height':'55%', 'width':'50%'}),
-            # html.Br(),
-            # html.Img(src='assets/donders_logo2.svg', alt='image', style={'float': 'right','padding': '0%','height':'50%', 'width':'60%'}),
-            # html.Img(src='assets/pcn_logo.png', alt='image', style={'float': 'right','padding': '0%','height':'30%', 'width':'80%'}),
         ]
     )
 ], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'})#, 'opacity':'1.00
@@ -272,39 +268,79 @@ def model_information(model_selection, data_type):
     prevent_initial_call=True
 )
 def update_dp(data_type):
-    # TO-DO: link model names to available models in directory.
 
-    # Get models based on data type subdir, pseudocode:
-    # model_choice_list = get_available_models(data_type)
-    # if data_type == 'Brain surface area':
-    #     # here we could put a df with all available models
-    #     model_selection_list = ['BSA blr', 'BSA hbr']
-    # if data_type == 'Average Thickness':
-    #     model_selection_list = ['AT blr', 'AT hbr']
     model_selection_list = retrieve_options(data_type)
     return model_selection_list
 
-# Create a function that only enables Submit button when all fields are non-zero
-@app.callback(
-    Output("btn_csv", "disabled"),
-    Input("email_address", "value"),
-    Input("data-type", "value"),
-    Input("model-selection", "value"),
-    Input("Upl_1", "filename"),
-    Input("Upl_2", "filename")
-)
-def enable_submission(email_address, data_type, model_selection, Upl_1, Upl_2):
-    # Check if all input is non-zero if so: enable button
-    # better to have an informative popup than a non available button
-    if email_address=="" or data_type=="" or model_selection=="" or Upl_1=="" or Upl_2 =="":
-        return True
-    else: return False
 
+# Check if all input fields are valid
+def input_checker(current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format):
+    # if validated: return True
+    error_message = ""
+    # Run checks
+    # if input fields haven't changed since last request
+    print(current_request)
+    print(previous_request)
+
+    # however, if any input is empty, this message overwrites:
+    if email_address =="" or data_type =="" or model_selection =='please select data type first...' or test_filename =="" or adapt_filename =="":
+        input_validated = False
+        error_message = "One of your input fields is empty."
+    elif not adapt_filename.endswith(file_format):
+        input_validated = False
+        error_message = "Your adaptation data file does not match selected data type: " + str(file_format)
+    elif not test_filename.endswith(file_format):
+        input_validated = False
+        error_message = "Your test data file does not match selected data type: " + str(file_format)
+    # test_data_columns = parse_contents(test_contents, test_filename).columns
+    # adapt_data_columns = parse_contents(adapt_contents, adapt_filename).columns
+    # test_goal_columns = 
+    # adapt_goal_columns
+    elif current_request == previous_request:
+        input_validated = False
+        error_message = "You've already submitted this request."
+    # check for data type
+    else: 
+        input_validated = True
+    return input_validated, error_message
+
+@app.callback(
+    Output("loading_or_error", "children"),
+    Output("loading_or_error", "color"),
+    Output("loading_or_error", "is_open"),
+    Output("loading_or_error", "fade"),
+    Output("session_id", "data"),
+    Output("previous_request", "data"),
+    State("email_address", "value"),
+    State("data-type", "value"),
+    State("model-selection", "value"),
+    State("Upl_1", "contents"),
+    State("Upl_1", "filename"),
+    State("Upl_2", "contents"),
+    State("Upl_2", "filename"),
+    State("previous_request", "data"),
+    State("file-format", "value"),
+    Input("btn_csv", "n_clicks"),
+    prevent_initial_call=True,
+)
+def display_alert(email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, previous_request, file_format, click):
+    current_request = [email_address, data_type, model_selection, test_filename, adapt_filename, file_format]
+    input_validated, return_message = input_checker(current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format)
+    
+    if input_validated == True:
+        import os, base64, uuid
+        session_id = str(uuid.uuid4()).replace("-", "")
+        return_message = "Your request is being processed with session ID: " + session_id
+        
+        return return_message, "light", True, True, session_id, current_request
+    if input_validated == False:
+        return return_message, "danger", True, True, "", previous_request
 
 # Load data into the model and store the .csv results on the website.
 @app.callback(
-    Output("submitted", "children"),
-    Output("btn_csv", "disabled"),
+    Output("completed", "children"),
+    Output("completed", "color"),
+    Output("completed", "is_open"),
     State("email_address", "value"),
     State("data-type", "value"),
     State("model-selection", "value"),
@@ -314,21 +350,21 @@ def enable_submission(email_address, data_type, model_selection, Upl_1, Upl_2):
     State("Upl_2", "contents"),
     State("Upl_2", "filename"),
     State('Upl_2', 'last_modified'),
-    Input("btn_csv", "n_clicks"),
-    prevent_initial_call=True
+    Input("session_id", "data"),
+    prevent_initial_call=True,
 )
-def update_output(email_address, data_type_dir, model_name, contents_test, name_test, date_test, 
-                  contents_adapt, name_adapt, date_adapt, clicks):
+def update_output(email_address, data_type, model_selection, test_contents, test_filename,
+                  adapt_contents, adapt_filename, session_id):
     
     # TO-DO this if could use an 'else'. We can do data checking here too. 
-    if email_address!="" and data_type_dir !="" and model_name !='please select data type first...' and name_test !="" and name_adapt !="":
+    #input_validated = input_checker(email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename)
+    if session_id != "":
         import subprocess
         # Convert input csv data to pandas
-        test_data_pd = parse_contents(contents_test, name_test, date_test)
-        adapt_data_pd = parse_contents(contents_adapt, name_adapt, date_adapt)
+        test_data_pd = parse_contents(test_contents, test_filename)
+        adapt_data_pd = parse_contents(adapt_contents, adapt_filename)
         # Remote working_dir
-        import os, base64, uuid
-        session_id = str(uuid.uuid4()).replace("-", "")
+
         session_path = os.path.join("sessions", session_id).replace("\\","/")
         os.mkdir(session_path)
 
@@ -343,7 +379,7 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
         
         # project_folder, can hardcode this in bash script
         # project_dir = "***REMOVED***"
-        #model_choice_path = os.path.join(models_dir, data_type_path, model_name)
+        #model_choice_path = os.path.join(models_dir, data_type_path, model_selection)
         # start restructuring dirs here!
         
         #idp_dir = os.path.join(session_dir, "idp_results")
@@ -355,26 +391,23 @@ def update_output(email_address, data_type_dir, model_name, contents_test, name_
         #removed /idp_results from {session_dir}
         remote_session_dir = os.path.join(projectdir, "sessions", session_id).replace("\\","/")
         scp = 'ssh -o "StrictHostKeyChecking=no" {username} mkdir -p {remote_session_dir} && scp -o "StrictHostKeyChecking=no" {test} {adapt} {username}:{remote_session_dir}'.format(username = username, remote_session_dir = remote_session_dir, test=test_path, adapt=adapt_path)
-        finished_message = "We sent your request with session ID: {session_id}".format(session_id=session_id)
+        finished_message = "We completed your request with session ID: {session_id}".format(session_id=session_id)
         print(f'{session_path=}')
         remove_temp_session = 'rm -r {session_path}'.format(session_path = session_path)
         subprocess.call(scp, shell=True)
         subprocess.call(remove_temp_session, shell=True)
-        algorithm = model_name.split("_")[0]
+        algorithm = model_selection.split("_")[0]
         # os path join does something strange with attaching two paths
         bash_path = os.path.join(projectdir, scriptdir, executefile).replace("\\","/") 
-        execute = 'ssh -o "StrictHostKeyChecking=no" {user} {bash_path} {projectdir} {model_name} {data_type_dir} {session_id} {algorithm} {email_address}'.format(user=username, bash_path=bash_path, projectdir = projectdir, model_name=model_name, data_type_dir = data_type_dir, session_id=session_id, algorithm=algorithm, email_address = email_address) 
-    
+        execute = 'ssh -o "StrictHostKeyChecking=no" {user} {bash_path} {projectdir} {model_selection} {data_type} {session_id} {algorithm} {email_address}'.format(user=username, bash_path=bash_path, projectdir = projectdir, model_selection=model_selection, data_type = data_type, session_id=session_id, algorithm=algorithm, email_address = email_address) 
         subprocess.call(execute, shell=True)
-
-        
-
-        return finished_message, True
-    # Else: exception: empty fields
+    
+        return finished_message, "success", True
+    else: return no_update, no_update, no_update
 
 # Convert input .csv to pandas dataframe
 # TO-DO: scp could be here as well, we don't really need dataframe of the input data
-def parse_contents(contents, filename, date):
+def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
 
     decoded = base64.b64decode(content_string)
@@ -392,14 +425,6 @@ def parse_contents(contents, filename, date):
             'There was an error processing this file.'
         ])
     return df
-# Download the results with a button.
-# @app.callback(
-#     Output("download-dataframe-csv", "data"),
-#     State("csv_store_session","data"),
-#     Input("results_onclick", "n_clicks")
-# )
-# def download_results(results_csv, clicks):
-#     return results_csv
 
 # List uploaded data files (1)
 @app.callback(
