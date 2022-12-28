@@ -24,7 +24,8 @@ import io, os, base64
 # Create a flask server
 server = Flask(__name__)
 # Create  Dash app
-app = DashProxy(server=server, external_stylesheets=[dbc.themes.MATERIA], title='PCNportal',transforms=[MultiplexerTransform()]) #
+app = DashProxy(server=server, external_stylesheets=[dbc.themes.MATERIA], 
+                title='PCNportal',transforms=[MultiplexerTransform()])
 app.title="PCNportal"
 #app.css.append_css({'external_url': '/static/template.css'})
 #app.server.static_folder = 'static'
@@ -115,13 +116,13 @@ app.layout = html.Div([
                     'borderRadius': '5px',
                     'textAlign': 'center'
                 }
-                , id= 'Upl_1'
+                , id= 'upload_test_data'
                 ),             
                 # List the uploaded data file(s)
-                html.Ul(id="list-data-file"),
+                html.Ul(id="list-test-fname"),
                 
                 html.Hr(),
-                dcc.Upload(html.A('Upload adaptation data')),
+                html.Label('Upload test data'),
                 html.Hr(),
                 dcc.Upload([
                     'Drag and Drop or ',
@@ -134,10 +135,10 @@ app.layout = html.Div([
                     'borderRadius': '5px',
                     'textAlign': 'center'
                 }
-                , id= 'Upl_2'
+                , id= 'upload_adapt_data'
                 ),
                 # List the uploaded covariate file(s)
-                html.Ul(id="list-cov-file"),            
+                html.Ul(id="list-adapt-fname"),            
                 html.Br(),
                 html.Label('Email address for results: '),
                 html.Br(),
@@ -314,10 +315,10 @@ def input_checker(current_request, previous_request, email_address, data_type, m
     State("email_address", "value"),
     State("data-type", "value"),
     State("model-selection", "value"),
-    State("Upl_1", "contents"),
-    State("Upl_1", "filename"),
-    State("Upl_2", "contents"),
-    State("Upl_2", "filename"),
+    State("upload_test_data", "contents"),
+    State("upload_test_data", "filename"),
+    State("upload_adapt_data", "contents"),
+    State("upload_adapt_data", "filename"),
     State("previous_request", "data"),
     State("file-format", "value"),
     Input("btn_csv", "n_clicks"),
@@ -344,12 +345,10 @@ def display_alert(email_address, data_type, model_selection, test_contents, test
     State("email_address", "value"),
     State("data-type", "value"),
     State("model-selection", "value"),
-    State("Upl_1", "contents"),
-    State("Upl_1", "filename"),
-    State('Upl_1', 'last_modified'),
-    State("Upl_2", "contents"),
-    State("Upl_2", "filename"),
-    State('Upl_2', 'last_modified'),
+    State("upload_test_data", "contents"),
+    State("upload_test_data", "filename"),
+    State("upload_adapt_data", "contents"),
+    State("upload_adapt_data", "filename"),
     Input("session_id", "data"),
     prevent_initial_call=True,
 )
@@ -428,8 +427,8 @@ def parse_contents(contents, filename):
 
 # List uploaded data files (1)
 @app.callback(
-    Output("list-data-file", "children"),
-    Input("Upl_1", "filename"),
+    Output("list-test-fname", "children"),
+    Input("upload_test_data", "filename"),
     prevent_initial_call=True,
 )
 
@@ -438,8 +437,8 @@ def list_data_file(data_name):
 
 # List uploaded data files (2)
 @app.callback(
-    Output("list-cov-file", "children"),
-    Input("Upl_2", "filename"),
+    Output("list-adapt-fname", "children"),
+    Input("upload_adapt_data", "filename"),
     prevent_initial_call=True,
 )
 def list_cov_file(cov_name):
