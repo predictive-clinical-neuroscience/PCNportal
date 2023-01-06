@@ -6,10 +6,6 @@
 #    and results to users accessing from all over the world, 
 #    It is hosted as a website from a remote gunicorn server.
 
-# python code for sshing into mentat
-#        cmd = 'plink mentat004.dccn.nl -l piebar -pw "mypassword"'
-        # retcode = subprocess.call(cmd,shell=True)
-        # os.chdir("")
 
 from dash import Dash, html, dcc, Input, Output, State, no_update
 import dash_bootstrap_components as dbc
@@ -27,8 +23,6 @@ server = Flask(__name__)
 app = DashProxy(server=server, external_stylesheets=[dbc.themes.MATERIA], 
                 title='PCNportal',transforms=[MultiplexerTransform()])
 app.title="PCNportal"
-#app.css.append_css({'external_url': '/static/template.css'})
-#app.server.static_folder = 'static'
 
 def retrieve_options(data_type=None):
     import ast
@@ -75,9 +69,10 @@ app.layout = html.Div([
         dcc.Tab(label='Model information', children=[
             html.Br(),
             html.Div(
-                dcc.Markdown(id="modelinfo-readme", link_target="_blank",), style={'margin':'auto','width':"80%"}
-            
+                dcc.Markdown(id="modelinfo-readme", link_target="_blank",), style={'margin':'auto','width':"80%"},
+                
             )
+            
         ]),
         dcc.Tab(label='Compute here!', id='modelling',
         
@@ -87,6 +82,8 @@ app.layout = html.Div([
                 # -----------------------------------------------------------------
                 dcc.Store(id='session_id', data=""),
                 dcc.Store(id='previous_request', data=[]),
+                dcc.Store(id="download_template", data=""),
+                dcc.Store(id="covariate_names", data=[]),
                 #dcc.Store(id='submit_bool', data='False'),
                 html.Br(),
                 html.Label('Data type'),
@@ -117,6 +114,7 @@ app.layout = html.Div([
                     'textAlign': 'center'
                 }
                 , id= 'upload_test_data'
+                , max_size= 1000000000 #1 GB
                 ),             
                 # List the uploaded data file(s)
                 html.Ul(id="list-test-fname"),
@@ -136,6 +134,7 @@ app.layout = html.Div([
                     'textAlign': 'center'
                 }
                 , id= 'upload_adapt_data'
+                , max_size= 1000000000 #1 GB
                 ),
                 # List the uploaded covariate file(s)
                 html.Ul(id="list-adapt-fname"),            
@@ -241,25 +240,47 @@ def load_tabs_markdown(load_readme_trigger):
 # Function for writing out model information markdown files
 @app.callback(
     Output(component_id='model-readme', component_property='children'),
+    Output(component_id='download_template', component_property='data'),
+    Output(component_id='covariate_names', component_property='data'),
     Input(component_id='model-selection', component_property='value'),
     State(component_id='data-type', component_property='value'),
     prevent_initial_call=True
 )
 def model_information(model_selection, data_type):
-    projectdir = os.environ['PROJECTDIR']
-    username = os.environ['MYUSER']
-    model_path = os.path.join(projectdir, "models", data_type, model_selection, "README.md")
-    # model_path = 
-    # ssh -o StrictHostKeyChecking=no ***REMOVED*** cat ***REMOVED***/models/ThickAvg/BLR_lifespan_57K_82sites/test_README.md
-    print(f'{model_path=}')
+    if model_selection != 'please select data type first...' and model_selection != 'Select...' and model_selection != "":
+        projectdir = os.environ['PROJECTDIR']
+        username = os.environ['MYUSER']
+        model_path = os.path.join(projectdir, "models", data_type, model_selection) 
+        readme_path = os.path.join(model_path,"README.md")
+        #untested, what path is this? 
+        covs_path = os.path.join(model_path, "covariates.txt") 
+        # ssh -o StrictHostKeyChecking=no ***REMOVED*** cat ***REMOVED***/models/ThickAvg/BLR_lifespan_57K_82sites/test_README.md
 
-    cat_readme = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", model_path]
-    p = Popen(cat_readme, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    output, _ = p.communicate()
-    import ast
-    byte_to_string = str(output, encoding='UTF-8')#.strip()
-    print(f'{byte_to_string=}')
-    return byte_to_string #string_to_list
+        cat_readme = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", readme_path]
+        cat_model_covs = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", covs_path]
+        p = Popen(cat_readme, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        output, _ = p.communicate()
+        byte_to_string = str(output, encoding='UTF-8')#.strip()
+        import re
+        #print(f'{byte_to_string=}')
+        download_pattern = r"\[Download\]\((.+)\)"
+        #split_lines = byte_to_string.splitlines
+        # First line that speaks of covariates
+        # cov_line = [line for line in split_lines if line.contains("covariates = ")][0]
+        #cov_line = cov_line.remove("covariates = ")
+        #covariate_lines = re.sub("[\(\[].*?[\)\]]", "", cov_line)
+        #covariate_names = re.search(byte_to_string)
+        #= "[Download](https://drive.google.com/uc?export=download&id=16QhWrAh2hQOMM2tx62VQDtvGKIkx3DnX)"
+        download_link = re.search(download_pattern, byte_to_string).group(1)
+        
+        # get mandatory covs
+        p = Popen(cat_model_covs, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        output, _ = p.communicate()
+        cov_byte_to_string = str(output, encoding='UTF-8')
+        # TO-DO: this needs a covariate file to parse first!
+        covariate_names = cov_byte_to_string.splitlines()
+        return byte_to_string, download_link, covariate_names
+    else: return no_update, no_update, no_update
     #***REMOVED***/models/ThickAvg/BLR_lifespan_57K_82sites/test_README.md
 
 # Function to restrict model choice based on data type choice
@@ -269,41 +290,60 @@ def model_information(model_selection, data_type):
     prevent_initial_call=True
 )
 def update_dp(data_type):
-
     model_selection_list = retrieve_options(data_type)
     return model_selection_list
 
 
 # Check if all input fields are valid
-def input_checker(current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format):
-    # if validated: return True
-    error_message = ""
-    # Run checks
-    # if input fields haven't changed since last request
-    print(current_request)
-    print(previous_request)
-
-    # however, if any input is empty, this message overwrites:
-    if email_address =="" or data_type =="" or model_selection =='please select data type first...' or test_filename =="" or adapt_filename =="":
+def input_checker(covariate_names, download_template, current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format):
+    return_message = ""
+    
+    if email_address == "" or data_type =="" or model_selection =='please select data type first...' or test_filename =="" or adapt_filename =="":
         input_validated = False
-        error_message = "One of your input fields is empty."
-    elif not adapt_filename.endswith(file_format):
+        return_message = "One of your input fields is empty."
+    elif isinstance(adapt_filename,str) and not adapt_filename.endswith(file_format):
         input_validated = False
-        error_message = "Your adaptation data file does not match selected data type: " + str(file_format)
-    elif not test_filename.endswith(file_format):
+        return_message = "Your adaptation data file extension does not match selected data type: " + str(file_format)
+    elif isinstance(test_filename,str) and not test_filename.endswith(file_format):
         input_validated = False
-        error_message = "Your test data file does not match selected data type: " + str(file_format)
-    # test_data_columns = parse_contents(test_contents, test_filename).columns
-    # adapt_data_columns = parse_contents(adapt_contents, adapt_filename).columns
-    # test_goal_columns = 
-    # adapt_goal_columns
+        return_message = "Your test data file extension does not match selected data type: " + str(file_format)
     elif current_request == previous_request:
         input_validated = False
-        error_message = "You've already submitted this request."
+        return_message = "You've already submitted this request."
     # check for data type
     else: 
+        # check idp name matching
+        import pandas as pd
+        # remove unnamed columns
+        test_data_columns = parse_contents(test_contents, test_filename).columns
+        adapt_data_columns = parse_contents(adapt_contents, adapt_filename).columns
+        goal_columns = pd.read_csv(download_template)
+        # make sure covariates are mandatory
+        # is it known what covariates a model is trained on?
+        # else, get rid of this feature, just provide a general column checker without covariate removal or checking.
+        mandatory_columns = covariate_names
+        # remove unnamed column and mandatory columns to count if any features are provided
+        goal_columns = goal_columns.drop(goal_columns.filter(regex="Unname"),axis=1)
+        goal_columns = goal_columns.drop(mandatory_columns, axis=1).columns
+        
+        # check for mandatory columns, such as covariates
+        for col in mandatory_columns:
+            missing = []
+            if col not in test_data_columns or col not in adapt_data_columns:
+                return False, "You are missing some of the mandatory covariates in your data sets: " + ", ".join(mandatory_columns)
+        return_message = [return_message, "Your data set has all the necessary covariates for this model.", html.Br()]
+        test_data_matches = goal_columns.intersection(test_data_columns).size
+        adapt_data_matches = goal_columns.intersection(adapt_data_columns).size
+        return_message = return_message +  ["Amount of adaptation features that match the model template: ", str(adapt_data_matches), " out of ", str(goal_columns.size), ". ", html.Br()] #[str(goal_columns.intersection(adapt_data_columns))] +
+        return_message = return_message + ["Amount of test features that match the model template: ", str(test_data_matches), " out of ", str(goal_columns.size), ". ", html.Br()]
         input_validated = True
-    return input_validated, error_message
+        if test_data_matches < 1:
+            input_validated = False
+            return_message = "Your test data has no feature matches with the model's data template. "
+        if adapt_data_matches < 1:
+            input_validated = False
+            return_message = return_message + "Your adaptation data has no feature matches with the model's data template. "
+    return input_validated, return_message
 
 @app.callback(
     Output("loading_or_error", "children"),
@@ -321,17 +361,19 @@ def input_checker(current_request, previous_request, email_address, data_type, m
     State("upload_adapt_data", "filename"),
     State("previous_request", "data"),
     State("file-format", "value"),
+    State("download_template", "data"),
+    State("covariate_names", "data"),
     Input("btn_csv", "n_clicks"),
     prevent_initial_call=True,
 )
-def display_alert(email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, previous_request, file_format, click):
+def display_alert(email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, previous_request, file_format,download_template, covariate_names, click):
     current_request = [email_address, data_type, model_selection, test_filename, adapt_filename, file_format]
-    input_validated, return_message = input_checker(current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format)
+    input_validated, return_message = input_checker(covariate_names, download_template, current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format)
     
     if input_validated == True:
         import os, base64, uuid
         session_id = str(uuid.uuid4()).replace("-", "")
-        return_message = "Your request is being processed with session ID: " + session_id
+        return_message = return_message + ["Your request is being processed with session ID: " + session_id]
         
         return return_message, "light", True, True, session_id, current_request
     if input_validated == False:
@@ -355,8 +397,6 @@ def display_alert(email_address, data_type, model_selection, test_contents, test
 def update_output(email_address, data_type, model_selection, test_contents, test_filename,
                   adapt_contents, adapt_filename, session_id):
     
-    # TO-DO this if could use an 'else'. We can do data checking here too. 
-    #input_validated = input_checker(email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename)
     if session_id != "":
         import subprocess
         # Convert input csv data to pandas
@@ -431,7 +471,6 @@ def parse_contents(contents, filename):
     Input("upload_test_data", "filename"),
     prevent_initial_call=True,
 )
-
 def list_data_file(data_name):
     return html.Li(data_name) 
 
