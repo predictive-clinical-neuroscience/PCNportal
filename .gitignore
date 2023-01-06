@@ -148,8 +148,7 @@ docs/phenotypes_lh.txt
 docs/phenotypes_rh.txt
 docs/phenotypes_sc.txt
 docs/site_ids_82sites.txt
-client/.ssh/id_rsa
-client/*
+client/.ssh/*
 <<<<<<< HEAD
 >>>>>>> 16ea06ee544bd9fb37e3e0629bc0d16bebaa86f6
 =======

@@ -1,5 +1,5 @@
 import pandas as pd
-path="/project_cephfs/3022051.01/sessions/67700178ffb844f891891c63e10924e9/Z_transfer.pkl"
+path=r"C:\Users\piebar\Downloads\Z_transfer.pkl"
 x = pd.read_pickle(path)
 #print(x.0)
 import matplotlib.pyplot as plt
