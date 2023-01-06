@@ -64,11 +64,12 @@ def transfer_normative_models():
     # test response variables
     with open(os.path.join(model_info_path,'idp_ids.txt')) as f:
         idps = f.read().splitlines()
-    testing_sample = 10
-    idps = idps[:testing_sample]
+    testing_sample = len(df_te.columns.intersection(set(idps)))
+    idps = idps#[:testing_sample]
     print(f'{idps=}')
     # extract and save the response variables for the test set
-    y_te = df_te[idps].to_numpy(dtype=float)
+    # only extract columns that are available, shouldn't crash when a column is not found
+    y_te = df_te[df_te.columns.intersection(set(idps))].to_numpy(dtype=float)
     resp_file_te = os.path.join(session_path, 'resp_te.pkl')
     with open(resp_file_te, 'wb') as file:
         pickle.dump(pd.DataFrame(y_te), file)
@@ -122,8 +123,9 @@ def transfer_normative_models():
         # save adaptation covariates
         with open(cov_file_ad, 'wb') as file:
             pickle.dump(pd.DataFrame(x_ad), file)
-        # save adaptation response variables
-        y_ad = df_ad[idps].to_numpy(dtype=float)
+        # save adaptation response variables, prevent error by only selecting columns that exist in df_ad
+        y_ad = df_ad[df_ad.columns.intersection(set(idps))].to_numpy(dtype=float)
+        #y_ad = df_ad[idps].to_numpy(dtype=float)
         with open(resp_file_ad, 'wb') as file:
             pickle.dump(pd.DataFrame(y_ad), file)
 
@@ -138,8 +140,8 @@ def transfer_normative_models():
         outputsuffix = '_transfer'
         inputsuffix = 'fit'
 
-        # parallelization
-        batch_size = int(testing_sample**(1/3))
+        # parallelization, make sure batch is not 0 or smaller
+        batch_size = int(testing_sample**(1/3)) if int(testing_sample**(1/3)) >= 1 else 1
         memory = '4gb'
         duration = '2:00:00'
         outputsuffix = '_transfer'
