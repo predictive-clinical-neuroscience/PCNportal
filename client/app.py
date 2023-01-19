@@ -21,8 +21,8 @@ import io, os, base64
 server = Flask(__name__)
 # Create  Dash app
 app = DashProxy(server=server, external_stylesheets=[dbc.themes.MATERIA], 
-                title='PCNportal',transforms=[MultiplexerTransform()])
-app.title="PCNportal"
+                title='PCNportal', update_title=None,transforms=[MultiplexerTransform()])
+#app.title="PCNportal"
 
 def retrieve_options(data_type=None):
     import ast
@@ -59,7 +59,7 @@ app.layout = html.Div([
                 dcc.Markdown(id='home-readme', link_target="_blank", dangerously_allow_html=True), style={'margin':'auto','width':"80%"}
             )
         ]),
-        dcc.Tab(label='How to Model', children=[
+        dcc.Tab(label='How to model', children=[
             html.Br(),
             html.Div(
                 dcc.Markdown(id="howto-readme", link_target="_blank",), style={'margin':'auto','width':"80%"}
@@ -93,7 +93,7 @@ app.layout = html.Div([
                 html.Label('Normative Model'),
                 dcc.Dropdown(['please select data type first...'], 'please select data type first...', id='model-selection'), #"please select data type first..."
                 html.Br(),
-                dcc.Markdown(id="model-readme", link_target="_blank"), 
+                dcc.Markdown(id="model-readme", link_target="_blank", dangerously_allow_html=True), 
                 html.Br(),
                 html.Label('Select data file format'),
                 dcc.Dropdown(['.csv'], '.csv', id='file-format'), #['.csv', 'NIFTI', '[other formats]']
@@ -117,10 +117,10 @@ app.layout = html.Div([
                 , max_size= 1000000000 #1 GB
                 ),             
                 # List the uploaded data file(s)
-                html.Ul(id="list-test-fname"),
+                html.P(id="list-test-fname"),
                 
                 html.Hr(),
-                html.Label('Upload test data'),
+                html.Label('Upload adaptation data'),
                 html.Hr(),
                 dcc.Upload([
                     'Drag and Drop or ',
@@ -137,7 +137,7 @@ app.layout = html.Div([
                 , max_size= 1000000000 #1 GB
                 ),
                 # List the uploaded covariate file(s)
-                html.Ul(id="list-adapt-fname"),            
+                html.P(id="list-adapt-fname"),            
                 html.Br(),
                 html.Label('Email address for results: '),
                 html.Br(),
@@ -192,7 +192,6 @@ app.layout = html.Div([
                     ),
                 
                     html.Div(
-                        
                         style={'float':'center'},
                         children=[
                             html.Br(),
@@ -253,7 +252,7 @@ def model_information(model_selection, data_type):
         model_path = os.path.join(projectdir, "models", data_type, model_selection) 
         readme_path = os.path.join(model_path,"README.md")
         #untested, what path is this? 
-        covs_path = os.path.join(model_path, "covariates.txt") 
+        covs_path = os.path.join(model_path, "mandatory_columns.txt") 
         # ssh -o StrictHostKeyChecking=no piebar@mentat004.dccn.nl cat /project_cephfs/3022051.01/models/ThickAvg/BLR_lifespan_57K_82sites/test_README.md
 
         cat_readme = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", readme_path]
@@ -326,15 +325,15 @@ def input_checker(covariate_names, download_template, current_request, previous_
         goal_columns = goal_columns.drop(goal_columns.filter(regex="Unname"),axis=1)
         goal_columns = goal_columns.drop(mandatory_columns, axis=1).columns
         
-        # check for mandatory columns, such as covariates
+        # check for mandatory columns, such as covariates or batch effects
         for col in mandatory_columns:
-            missing = []
             if col not in test_data_columns or col not in adapt_data_columns:
-                return False, "You are missing some of the mandatory covariates in your data sets: " + ", ".join(mandatory_columns)
+                return False, "You are missing some or all of the following mandatory columns (batch effects or covariates) in your data sets: " + ", ".join(mandatory_columns) + ". "
+        
         return_message = [return_message, "Your data set has all the necessary covariates for this model.", html.Br()]
         test_data_matches = goal_columns.intersection(test_data_columns).size
         adapt_data_matches = goal_columns.intersection(adapt_data_columns).size
-        return_message = return_message +  ["Amount of adaptation features that match the model template: ", str(adapt_data_matches), " out of ", str(goal_columns.size), ". ", html.Br()] #[str(goal_columns.intersection(adapt_data_columns))] +
+        return_message = return_message +  [str(goal_columns.difference(adapt_data_columns))] + ["Amount of adaptation features that match the model template: ", str(adapt_data_matches), " out of ", str(goal_columns.size), ". ", html.Br()] #[str(goal_columns.intersection(adapt_data_columns))] + 
         return_message = return_message + ["Amount of test features that match the model template: ", str(test_data_matches), " out of ", str(goal_columns.size), ". ", html.Br()]
         input_validated = True
         if test_data_matches < 1:
@@ -431,7 +430,7 @@ def update_output(email_address, data_type, model_selection, test_contents, test
         remote_session_dir = os.path.join(projectdir, "sessions", session_id).replace("\\","/")
         scp = 'ssh -o "StrictHostKeyChecking=no" {username} mkdir -p {remote_session_dir} && scp -o "StrictHostKeyChecking=no" {test} {adapt} {username}:{remote_session_dir}'.format(username = username, remote_session_dir = remote_session_dir, test=test_path, adapt=adapt_path)
         finished_message = "We completed your request with session ID: {session_id}".format(session_id=session_id)
-        print(f'{session_path=}')
+        #print(f'{session_path=}')
         remove_temp_session = 'rm -r {session_path}'.format(session_path = session_path)
         subprocess.call(scp, shell=True)
         subprocess.call(remove_temp_session, shell=True)
@@ -465,23 +464,24 @@ def parse_contents(contents, filename):
         ])
     return df
 
-# List uploaded data files (1)
+# List uploaded test data files
 @app.callback(
     Output("list-test-fname", "children"),
     Input("upload_test_data", "filename"),
     prevent_initial_call=True,
 )
-def list_data_file(data_name):
-    return html.Li(data_name) 
+def list_test_file(test_fname):
+    return [html.Br(), html.Li(test_fname)]
 
-# List uploaded data files (2)
+
+# List uploaded adaptation data files
 @app.callback(
     Output("list-adapt-fname", "children"),
     Input("upload_adapt_data", "filename"),
     prevent_initial_call=True,
 )
-def list_cov_file(cov_name):
-    return html.Li(cov_name) 
+def list_adapt_file(adapt_fname):
+    return [html.Br(), html.Li(adapt_fname)]
 
 # Serve the app upon running the script.
 if __name__ == '__main__':
