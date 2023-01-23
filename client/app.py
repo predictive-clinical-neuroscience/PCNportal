@@ -17,42 +17,41 @@ from flask import Flask
 #import os, sys
 import io, os, base64
 
-# Create a flask server
 server = Flask(__name__)
-# Create  Dash app
+# DashProxy app is created isntead of Dash to enable multiple functions for one output (currently unused)
 app = DashProxy(server=server, external_stylesheets=[dbc.themes.MATERIA], 
                 title='PCNportal', update_title=None,transforms=[MultiplexerTransform()])
-#app.title="PCNportal"
 
+# This function retrieves available data types or models.
 def retrieve_options(data_type=None):
     import ast
-    # can be models or models/data_type
+    
+    # Choose between data type or models directory
     chosen_dir = "models"
     if data_type is not None:
         chosen_dir = os.path.join("models", data_type)
     py_script = os.path.join(os.environ['PROJECTDIR'], os.environ['SCRIPTDIR'], os.environ['LISTDIR'])
 
+    # Create a remotely executable SSH command
     list_dirs = ["ssh", "-o", "StrictHostKeyChecking=no", os.environ['MYUSER'], "python", py_script, str(chosen_dir)]
-    # ssh -o StrictHostKeyChecking=no ***REMOVED*** python ***REMOVED***/list_subdirs.py "models"
-    #test ssh: ["ssh", "-o", "StrictHostKeyChecking=no", "***REMOVED***", "python", "***REMOVED***/list_subdirs.py", "models"]#
     p = Popen(list_dirs, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    # Optionally, you can use err to check error codes.
     output, err = p.communicate()
-    # is this helpful? gives the return code of the command
     # rc = p.returncode
-    # strip, to get rid of (/n)
     
+    # Read in stdout and get rid of special characters
     byte_to_string = str(output, encoding='UTF-8').strip()
     string_to_list = ast.literal_eval(byte_to_string)
 
     return string_to_list
 
 # -----------------------------------------------------------------
-# The entire contents of the app.
+# The GUI of the app is specified below.
 app.layout = html.Div([ 
     html.Div([
+    # Columns keep the tabs and their contents centered and aligned.
     dbc.Col(
     dcc.Tabs([
-        #!["A pretty tiger"](https://github.com/predictive-clinical-neuroscience/braincharts/blob/master/docs/image_files/ThickAvg_BLR_lifespan_age.png?raw=true)
         dcc.Tab(label='Home', children=[
             html.Br(),
             html.Div(
@@ -64,39 +63,38 @@ app.layout = html.Div([
             html.Div(
                 dcc.Markdown(id="howto-readme", link_target="_blank",), style={'margin':'auto','width':"80%"}
             )
-        ]
-        ),
+        ]),
         dcc.Tab(label='Model information', children=[
             html.Br(),
             html.Div(
                 dcc.Markdown(id="modelinfo-readme", link_target="_blank",), style={'margin':'auto','width':"80%"},
                 
             )
-            
         ]),
+
+        # The submission form
         dcc.Tab(label='Compute here!', id='modelling',
-        
         children=[
             html.Div(children=[
-            
-                # -----------------------------------------------------------------
+                # Best practice for variable storage in Dash
                 dcc.Store(id='session_id', data=""),
                 dcc.Store(id='previous_request', data=[]),
                 dcc.Store(id="download_template", data=""),
                 dcc.Store(id="covariate_names", data=[]),
-                #dcc.Store(id='submit_bool', data='False'),
+
                 html.Br(),
                 html.Label('Data type'),
-                dcc.Dropdown(options = retrieve_options(), id='data-type'), # For styling commented: 
+                dcc.Dropdown(options = retrieve_options(), id='data-type'),
                 
                 html.Br(),
                 html.Label('Normative Model'),
-                dcc.Dropdown(['please select data type first...'], 'please select data type first...', id='model-selection'), #"please select data type first..."
+                dcc.Dropdown(['please select data type first...'], 'please select data type first...', id='model-selection'),
                 html.Br(),
                 dcc.Markdown(id="model-readme", link_target="_blank", dangerously_allow_html=True), 
                 html.Br(),
                 html.Label('Select data file format'),
-                dcc.Dropdown(['.csv'], '.csv', id='file-format'), #['.csv', 'NIFTI', '[other formats]']
+                # Only .csv is supported at this time
+                dcc.Dropdown(['.csv'], '.csv', id='file-format'),
 
                 html.Br(),
                 html.Hr(),
@@ -112,13 +110,12 @@ app.layout = html.Div([
                     'borderStyle': 'dashed',
                     'borderRadius': '5px',
                     'textAlign': 'center'
-                }
-                , id= 'upload_test_data'
-                , max_size= 1000000000 #1 GB
+                },
+                    id= 'upload_test_data',
+                    # 1GB limit prevents security risk of overloading server memory
+                    max_size= 1000000000
                 ),             
-                # List the uploaded data file(s)
                 html.P(id="list-test-fname"),
-                
                 html.Hr(),
                 html.Label('Upload adaptation data'),
                 html.Hr(),
@@ -132,22 +129,21 @@ app.layout = html.Div([
                     'borderStyle': 'dashed',
                     'borderRadius': '5px',
                     'textAlign': 'center'
-                }
-                , id= 'upload_adapt_data'
-                , max_size= 1000000000 #1 GB
+                },
+                    id= 'upload_adapt_data',
+                    max_size= 1000000000 #1 GB
                 ),
-                # List the uploaded covariate file(s)
-                html.P(id="list-adapt-fname"),            
+                html.P(id="list-adapt-fname"),
+
                 html.Br(),
                 html.Label('Email address for results: '),
                 html.Br(),
                 dcc.Input(value='', type='text', id='email_address', style={'width':'40%'}),         
-                # -----------------------------------------------------------------
-                # The data submission and results retrieval section
+
                 html.Div(
                     children=[
                         # -----------------------------------------------------------------
-                        # Check lists with all options to control results output
+                        # TO-DO: Check boxes to control what results the user wants to receive.
                         # dcc.Checklist(className ='checkbox_1',
                         #             style={'margin-right': '0%'},
                         #             options=[
@@ -195,30 +191,29 @@ app.layout = html.Div([
                         style={'float':'center'},
                         children=[
                             html.Br(),
+                            # Instant feedback loading/error on request without waiting for completion.
                             dbc.Alert(id="loading_or_error", is_open=False,
-                            children="Your computation request is being submitted..."),
+                                children="Your computation request is being submitted..."),
+                            # Slower feedback when request is completed.    
                             dbc.Alert(id="completed", is_open=False, color='success'),
                             html.Br(),
                         ]
-                        
                        ),
-
             ], style={'margin':'auto', 'width':'75%', 'flex': 1}),
         ]),
-    
-    ])#, style={'padding': '5%'}),
-    )
-    ,
+    ])
+    ),
     html.Div(
-        style={'padding':'1%','position': 'absolute', 'left': '85%', 'top': '100%'},#'width': '5%', 'height': '5%', 
+        style={'padding':'1%','position': 'absolute', 'left': '85%', 'top': '100%'},
         children=[
+            # Workaround: readmes didn't load. Let image loading trigger the readme loading. 
             html.Img(id="load-readme-trigger",src='assets/merged_images.png', alt='image', style={'float': 'right', 'padding': '0%','height':'130%', 'width':'130%'}),
         ]
-    )
-], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'})#, 'opacity':'1.00
-])#, style={'backgroundColor':'blue'}
+    ),
+    ], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'})
+])
 # -----------------------------------------------------------------
-# Functions that handle input and output for the Dash components.
+# All functions that handle input and output for the Dash components.
 
 @app.callback(
     Output(component_id='home-readme', component_property='children'),
@@ -227,6 +222,7 @@ app.layout = html.Div([
     Input(component_id='load-readme-trigger', component_property='children'),
     prevent_initial_call=False
 )
+# Function for loading in static markdown files files.
 def load_tabs_markdown(load_readme_trigger):
     with open('assets/home.md', 'r') as mdfile:
         home = mdfile.readlines()
@@ -236,7 +232,7 @@ def load_tabs_markdown(load_readme_trigger):
         modelinfo = mdfile.readlines()
     return home, howto, modelinfo
 
-# Function for writing out model information markdown files
+# Function for dynamically reading in dynamic model information markdown files, model templates and mandatory columns.
 @app.callback(
     Output(component_id='model-readme', component_property='children'),
     Output(component_id='download_template', component_property='data'),
@@ -246,41 +242,35 @@ def load_tabs_markdown(load_readme_trigger):
     prevent_initial_call=True
 )
 def model_information(model_selection, data_type):
+    # Only execute when model is chosen to prevent errors.
     if model_selection != 'please select data type first...' and model_selection != 'Select...' and model_selection != "":
+
         projectdir = os.environ['PROJECTDIR']
         username = os.environ['MYUSER']
         model_path = os.path.join(projectdir, "models", data_type, model_selection) 
         readme_path = os.path.join(model_path,"README.md")
-        #untested, what path is this? 
-        covs_path = os.path.join(model_path, "mandatory_columns.txt") 
-        # ssh -o StrictHostKeyChecking=no ***REMOVED*** cat ***REMOVED***/models/ThickAvg/BLR_lifespan_57K_82sites/test_README.md
+        covsbe_path = os.path.join(model_path, "mandatory_columns.txt") 
 
+        # Retrieve and write out readmes for a model.
         cat_readme = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", readme_path]
-        cat_model_covs = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", covs_path]
         p = Popen(cat_readme, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         output, _ = p.communicate()
-        byte_to_string = str(output, encoding='UTF-8')#.strip()
+        byte_to_string = str(output, encoding='UTF-8')
+
+        # Extract downloadable template link from readme.
         import re
-        #print(f'{byte_to_string=}')
         download_pattern = r"\[Download\]\((.+)\)"
-        #split_lines = byte_to_string.splitlines
-        # First line that speaks of covariates
-        # cov_line = [line for line in split_lines if line.contains("covariates = ")][0]
-        #cov_line = cov_line.remove("covariates = ")
-        #covariate_lines = re.sub("[\(\[].*?[\)\]]", "", cov_line)
-        #covariate_names = re.search(byte_to_string)
-        #= "[Download](https://drive.google.com/uc?export=download&id=16QhWrAh2hQOMM2tx62VQDtvGKIkx3DnX)"
         download_link = re.search(download_pattern, byte_to_string).group(1)
         
-        # get mandatory covs
-        p = Popen(cat_model_covs, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        # Get mandatory columns, covs and batch effects.
+        cat_model_covsbe = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", covsbe_path]
+        p = Popen(cat_model_covsbe, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         output, _ = p.communicate()
-        cov_byte_to_string = str(output, encoding='UTF-8')
-        # TO-DO: this needs a covariate file to parse first!
-        covariate_names = cov_byte_to_string.splitlines()
-        return byte_to_string, download_link, covariate_names
+        covbe_byte_to_string = str(output, encoding='UTF-8')
+        mandatory_column_names = covbe_byte_to_string.splitlines()
+        return byte_to_string, download_link, mandatory_column_names
+    # no_update prevents error when 3 values are expected to be returned but none are returned.
     else: return no_update, no_update, no_update
-    #***REMOVED***/models/ThickAvg/BLR_lifespan_57K_82sites/test_README.md
 
 # Function to restrict model choice based on data type choice
 @app.callback(
@@ -291,7 +281,6 @@ def model_information(model_selection, data_type):
 def update_dp(data_type):
     model_selection_list = retrieve_options(data_type)
     return model_selection_list
-
 
 # Check if all input fields are valid
 def input_checker(covariate_names, download_template, current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format):
@@ -333,7 +322,7 @@ def input_checker(covariate_names, download_template, current_request, previous_
         return_message = [return_message, "Your data set has all the necessary covariates for this model.", html.Br()]
         test_data_matches = goal_columns.intersection(test_data_columns).size
         adapt_data_matches = goal_columns.intersection(adapt_data_columns).size
-        return_message = return_message +  [str(goal_columns.difference(adapt_data_columns))] + ["Amount of adaptation features that match the model template: ", str(adapt_data_matches), " out of ", str(goal_columns.size), ". ", html.Br()] #[str(goal_columns.intersection(adapt_data_columns))] + 
+        return_message = return_message +  ["Amount of adaptation features that match the model template: ", str(adapt_data_matches), " out of ", str(goal_columns.size), ". ", html.Br()] #[str(goal_columns.intersection(adapt_data_columns))] + [str(goal_columns.difference(adapt_data_columns))] +
         return_message = return_message + ["Amount of test features that match the model template: ", str(test_data_matches), " out of ", str(goal_columns.size), ". ", html.Br()]
         input_validated = True
         if test_data_matches < 1:
@@ -372,6 +361,8 @@ def display_alert(email_address, data_type, model_selection, test_contents, test
     if input_validated == True:
         import os, base64, uuid
         session_id = str(uuid.uuid4()).replace("-", "")
+        mode_name = "test_session_" if 'LOCALTESTING' in os.environ else ""
+        session_id = mode_name + session_id
         return_message = return_message + ["Your request is being processed with session ID: " + session_id]
         
         return return_message, "light", True, True, session_id, current_request
@@ -422,6 +413,7 @@ def update_output(email_address, data_type, model_selection, test_contents, test
         
         #idp_dir = os.path.join(session_dir, "idp_results")
         # create session dir and transfer data there
+        
         username = os.environ['MYUSER'] #"***REMOVED***"
         projectdir = os.environ['PROJECTDIR'] #"***REMOVED***"
         scriptdir = os.environ['SCRIPTDIR'] #"***REMOVED***"
