@@ -139,8 +139,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 *.pkl
-*.md
-*.md
 .ssh/id_rsa
 *.pub
 docs/phenotypes_lh.txt
