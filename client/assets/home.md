@@ -9,7 +9,7 @@ Clinical heterogeneity makes case-control studies insufficient to fully understa
 **How does this website help me with normative modeling?**
 This website makes it trivial to run normative models pre-trained on tens of thousands of brain images from many different data collection sites. You can now make use of all of our available models in a few clicks, requiring no technical background or compute power, and only a data set of choice. With minimal effort, you can derive subject level statistics for further analysis and find out how well your neural biomarkers match the normative patterns we provide as a function of  covariates such as age and gender.
 
-Happy modelling.
+Happy modelling!
 
 _**Disclaimer:** this application strives to comply with best practices in data protection including relevant European and International laws (including GDPR). By submitting your pseudoanonymised imaging data on our website, you give permission to process your data. Data will be removed from our system within 30 days. At this time, no warranty is provided and these normative models should purely be used for scientific investigations and explorations. They have not been approved for clinical applications, although this is a future goal._
 
