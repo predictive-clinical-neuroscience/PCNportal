@@ -18,7 +18,7 @@ from flask import Flask
 import io, os, base64
 
 server = Flask(__name__)
-# DashProxy app is created isntead of Dash to enable multiple functions for one output (currently unused)
+# DashProxy is used instead of Dash to enable mapping multiple functions to one output (currently unused).
 app = DashProxy(server=server, external_stylesheets=[dbc.themes.MATERIA], 
                 title='PCNportal', update_title=None,transforms=[MultiplexerTransform()])
 
@@ -39,7 +39,7 @@ def retrieve_options(data_type=None):
     output, err = p.communicate()
     # rc = p.returncode
     
-    # Read in stdout and get rid of special characters
+    # Convert to appropriate list format
     byte_to_string = str(output, encoding='UTF-8').strip()
     string_to_list = ast.literal_eval(byte_to_string)
 
@@ -80,7 +80,7 @@ app.layout = html.Div([
                 dcc.Store(id='session_id', data=""),
                 dcc.Store(id='previous_request', data=[]),
                 dcc.Store(id="download_template", data=""),
-                dcc.Store(id="covariate_names", data=[]),
+                dcc.Store(id="mandatory_columns", data=[]),
 
                 html.Br(),
                 html.Label('Data type'),
@@ -214,6 +214,7 @@ app.layout = html.Div([
 ])
 # -----------------------------------------------------------------
 # All functions that handle input and output for the Dash components.
+# -----------------------------------------------------------------
 
 @app.callback(
     Output(component_id='home-readme', component_property='children'),
@@ -236,13 +237,13 @@ def load_tabs_markdown(load_readme_trigger):
 @app.callback(
     Output(component_id='model-readme', component_property='children'),
     Output(component_id='download_template', component_property='data'),
-    Output(component_id='covariate_names', component_property='data'),
+    Output(component_id='mandatory_columns', component_property='data'),
     Input(component_id='model-selection', component_property='value'),
     State(component_id='data-type', component_property='value'),
     prevent_initial_call=True
 )
 def model_information(model_selection, data_type):
-    # Only execute when model is chosen to prevent errors.
+    # Only execute when model is chosen, to prevent errors.
     if model_selection != 'please select data type first...' and model_selection != 'Select...' and model_selection != "":
 
         projectdir = os.environ['PROJECTDIR']
@@ -251,7 +252,7 @@ def model_information(model_selection, data_type):
         readme_path = os.path.join(model_path,"README.md")
         covsbe_path = os.path.join(model_path, "mandatory_columns.txt") 
 
-        # Retrieve and write out readmes for a model.
+        # Retrieve and write out model-specific readmes.
         cat_readme = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", readme_path]
         p = Popen(cat_readme, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         output, _ = p.communicate()
@@ -262,7 +263,7 @@ def model_information(model_selection, data_type):
         download_pattern = r"\[Download\]\((.+)\)"
         download_link = re.search(download_pattern, byte_to_string).group(1)
         
-        # Get mandatory columns, covs and batch effects.
+        # Get mandatory columns, i.e. covs and batch effects.
         cat_model_covsbe = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", covsbe_path]
         p = Popen(cat_model_covsbe, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         output, _ = p.communicate()
@@ -282,10 +283,11 @@ def update_dp(data_type):
     model_selection_list = retrieve_options(data_type)
     return model_selection_list
 
-# Check if all input fields are valid
-def input_checker(covariate_names, download_template, current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format):
-    return_message = ""
+# Evaluates the submitted data and gives a measure of success or a specific error.
+def input_checker(mandatory_columns, download_template, current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format):
     
+    # Trivial errors.
+    return_message = ""
     if email_address == "" or data_type =="" or model_selection =='please select data type first...' or test_filename =="" or adapt_filename =="":
         input_validated = False
         return_message = "One of your input fields is empty."
@@ -295,44 +297,44 @@ def input_checker(covariate_names, download_template, current_request, previous_
     elif isinstance(test_filename,str) and not test_filename.endswith(file_format):
         input_validated = False
         return_message = "Your test data file extension does not match selected data type: " + str(file_format)
+    # Importantly, this checks if the request has changed at all to prevent spam clicks.
     elif current_request == previous_request:
         input_validated = False
         return_message = "You've already submitted this request."
-    # check for data type
+
     else: 
-        # check idp name matching
         import pandas as pd
-        # remove unnamed columns
         test_data_columns = parse_contents(test_contents, test_filename).columns
         adapt_data_columns = parse_contents(adapt_contents, adapt_filename).columns
         goal_columns = pd.read_csv(download_template)
-        # make sure covariates are mandatory
-        # is it known what covariates a model is trained on?
-        # else, get rid of this feature, just provide a general column checker without covariate removal or checking.
-        mandatory_columns = covariate_names
-        # remove unnamed column and mandatory columns to count if any features are provided
+        
+        # Evaluate only number of matching non-mandatory columns, i.e. idps.
         goal_columns = goal_columns.drop(goal_columns.filter(regex="Unname"),axis=1)
         goal_columns = goal_columns.drop(mandatory_columns, axis=1).columns
         
-        # check for mandatory columns, such as covariates or batch effects
+        # Ensure all mandatory columns are present.
         for col in mandatory_columns:
             if col not in test_data_columns or col not in adapt_data_columns:
                 return False, "You are missing some or all of the following mandatory columns (batch effects or covariates) in your data sets: " + ", ".join(mandatory_columns) + ". "
-        
         return_message = [return_message, "Your data set has all the necessary covariates for this model.", html.Br()]
+
+        # Report the amount of matching template names per file.
         test_data_matches = goal_columns.intersection(test_data_columns).size
         adapt_data_matches = goal_columns.intersection(adapt_data_columns).size
         return_message = return_message +  ["Amount of adaptation features that match the model template: ", str(adapt_data_matches), " out of ", str(goal_columns.size), ". ", html.Br()] #[str(goal_columns.intersection(adapt_data_columns))] + [str(goal_columns.difference(adapt_data_columns))] +
         return_message = return_message + ["Amount of test features that match the model template: ", str(test_data_matches), " out of ", str(goal_columns.size), ". ", html.Br()]
-        input_validated = True
+        
+        # Currently on the app both adaptation and test data are mandatory, but that is not necessary for modelling (future work).
         if test_data_matches < 1:
             input_validated = False
             return_message = "Your test data has no feature matches with the model's data template. "
         if adapt_data_matches < 1:
             input_validated = False
             return_message = return_message + "Your adaptation data has no feature matches with the model's data template. "
+        input_validated = True
     return input_validated, return_message
 
+# Main function for validating input.
 @app.callback(
     Output("loading_or_error", "children"),
     Output("loading_or_error", "color"),
@@ -350,26 +352,27 @@ def input_checker(covariate_names, download_template, current_request, previous_
     State("previous_request", "data"),
     State("file-format", "value"),
     State("download_template", "data"),
-    State("covariate_names", "data"),
+    State("mandatory_columns", "data"),
     Input("btn_csv", "n_clicks"),
     prevent_initial_call=True,
 )
-def display_alert(email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, previous_request, file_format,download_template, covariate_names, click):
+def display_alert(email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, previous_request, file_format,download_template, mandatory_columns, click):
     current_request = [email_address, data_type, model_selection, test_filename, adapt_filename, file_format]
-    input_validated, return_message = input_checker(covariate_names, download_template, current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format)
+    input_validated, return_message = input_checker(mandatory_columns, download_template, current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format)
     
+    # Only create a session ID if their input is valid, and start processing.
     if input_validated == True:
         import os, base64, uuid
         session_id = str(uuid.uuid4()).replace("-", "")
         mode_name = "test_session_" if 'LOCALTESTING' in os.environ else ""
         session_id = mode_name + session_id
         return_message = return_message + ["Your request is being processed with session ID: " + session_id]
-        
         return return_message, "light", True, True, session_id, current_request
+    # If invalid, return errors and keep the old session ID if there was one.    
     if input_validated == False:
         return return_message, "danger", True, True, "", previous_request
 
-# Load data into the model and store the .csv results on the website.
+# Submit computation request to the backend.
 @app.callback(
     Output("completed", "children"),
     Output("completed", "color"),
@@ -387,56 +390,48 @@ def display_alert(email_address, data_type, model_selection, test_contents, test
 def update_output(email_address, data_type, model_selection, test_contents, test_filename,
                   adapt_contents, adapt_filename, session_id):
     
+    # Computation only happens when there is a session ID - a new session ID or else it would've failed during input validation.
     if session_id != "":
         import subprocess
-        # Convert input csv data to pandas
         test_data_pd = parse_contents(test_contents, test_filename)
         adapt_data_pd = parse_contents(adapt_contents, adapt_filename)
-        # Remote working_dir
-
+        # Container session path
         session_path = os.path.join("sessions", session_id).replace("\\","/")
         os.mkdir(session_path)
 
-        #session_id = "session_id" + str(random.randint(100000,999999))
+        # Prepare data for uploading
         test_path = os.path.join(session_path, "test.pkl").replace("\\","/")
         adapt_path = os.path.join(session_path, "adapt.pkl").replace("\\","/")
         test_data_pd.to_pickle(test_path)
         adapt_data_pd.to_pickle(adapt_path)
         
-        # execute a bash script that qsubs an apply_model to the cluster
-        # create random session integer as name
-        
-        # project_folder, can hardcode this in bash script
-        # project_dir = "/project_cephfs/3022051.01"
-        #model_choice_path = os.path.join(models_dir, data_type_path, model_selection)
-        # start restructuring dirs here!
-        
-        #idp_dir = os.path.join(session_dir, "idp_results")
-        # create session dir and transfer data there
-        
+
         username = os.environ['MYUSER'] #"piebar@mentat004.dccn.nl"
         projectdir = os.environ['PROJECTDIR'] #"/project_cephfs/3022051.01"
         scriptdir = os.environ['SCRIPTDIR'] #"test_scripts/server"
         executefile = os.environ['EXECUTEFILE']#"execute_modelling.sh"#
-        #removed /idp_results from {session_dir}
+        
+        # Upload the data to the server.
         remote_session_dir = os.path.join(projectdir, "sessions", session_id).replace("\\","/")
         scp = 'ssh -o "StrictHostKeyChecking=no" {username} mkdir -p {remote_session_dir} && scp -o "StrictHostKeyChecking=no" {test} {adapt} {username}:{remote_session_dir}'.format(username = username, remote_session_dir = remote_session_dir, test=test_path, adapt=adapt_path)
-        finished_message = "We completed your request with session ID: {session_id}".format(session_id=session_id)
-        #print(f'{session_path=}')
-        remove_temp_session = 'rm -r {session_path}'.format(session_path = session_path)
         subprocess.call(scp, shell=True)
+        
+        # Remove the temporary session data in the container.
+        remove_temp_session = 'rm -r {session_path}'.format(session_path = session_path)
         subprocess.call(remove_temp_session, shell=True)
+        # TO-DO: remove algorithm arg as clean up
         algorithm = model_selection.split("_")[0]
-        # os path join does something strange with attaching two paths
+
+        # Submit computation request with all the collected user input.
         bash_path = os.path.join(projectdir, scriptdir, executefile).replace("\\","/") 
         execute = 'ssh -o "StrictHostKeyChecking=no" {user} {bash_path} {projectdir} {model_selection} {data_type} {session_id} {algorithm} {email_address}'.format(user=username, bash_path=bash_path, projectdir = projectdir, model_selection=model_selection, data_type = data_type, session_id=session_id, algorithm=algorithm, email_address = email_address) 
         subprocess.call(execute, shell=True)
-    
+
+        finished_message = "We completed your request with session ID: {session_id}".format(session_id=session_id)
         return finished_message, "success", True
     else: return no_update, no_update, no_update
 
-# Convert input .csv to pandas dataframe
-# TO-DO: scp could be here as well, we don't really need dataframe of the input data
+# Currently all input is converted to pandas. Might need to change if we allow cifti and nifti input.
 def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
 
@@ -446,6 +441,7 @@ def parse_contents(contents, filename):
             # Assume that the user uploaded a CSV file
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')))
+        # potential extension of allowed data types
         # elif 'xls' in filename:
         #     # Assume that the user uploaded an excel file
         #     df = pd.read_excel(io.BytesIO(decoded))
@@ -456,7 +452,7 @@ def parse_contents(contents, filename):
         ])
     return df
 
-# List uploaded test data files
+# List file names of uploaded test data.
 @app.callback(
     Output("list-test-fname", "children"),
     Input("upload_test_data", "filename"),
@@ -465,8 +461,7 @@ def parse_contents(contents, filename):
 def list_test_file(test_fname):
     return [html.Br(), html.Li(test_fname)]
 
-
-# List uploaded adaptation data files
+# List file names of uploaded adaptation data.
 @app.callback(
     Output("list-adapt-fname", "children"),
     Input("upload_adapt_data", "filename"),
