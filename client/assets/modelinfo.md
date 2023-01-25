@@ -1,6 +1,6 @@
 
 Here you can find general information about our available models. The models have been trained on extensive data sets with thorough parameter tuning. A subset of these models have also formed the basis of published work.
-The model names contain information of their learning configurations, and can be viewed per data type. The data types currently supported can be found under 'Data type' in the 'Compute here!' tab. **More Model-specific information is provided upon choosing a data type from the dropdown menu.**
+The model names contain information of their learning configurations, and can be viewed per data type. The data types currently supported can be found under 'Data type' in the 'Compute here!' tab. **More model-specific information is provided upon choosing a data type from the dropdown menu.**
 
 The model name follows the syntax *"{alg}\_{name}\_{sample}\_{n}sites"*:
 * alg = algorithm (options: HBR, BLR)
