@@ -1,5 +1,4 @@
 ### Fuss-free normative modelling
-<img src="https://github.com/predictive-clinical-neuroscience/braincharts/blob/master/docs/image_files/ThickAvg_BLR_lifespan_age.png?raw=true" alt="Employee data" width="500" height="600" title="Employee Data title">
 
 Our [Predictive Clinical Neuroscience group](https://predictiveclinicalneuroscience.com/) at the Donders Institute and RadboudUMC develops normative models to predict and stratify brain disorders on the basis of neuroimaging data, and you can now make use of those models for your research in the click of a button. 
 
