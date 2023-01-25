@@ -1,7 +1,8 @@
 import pandas as pd
-path=r"C:\Users\piebar\Downloads\Z_transfer.pkl"
-x = pd.read_pickle(path)
-#print(x.0)
+path= r"C:\Users\piebar\Downloads\Z_transfer.pkl"
+x=pd.read_pickle(path)
+print(x.head)
+
 import matplotlib.pyplot as plt
 for i in range(10):
     plt.clf()
