@@ -3,7 +3,7 @@
 mkdir -p ~/.ssh
 
 if [ ! -f ~/.ssh/id_rsa ]; then
-  ## generate a new SSH key, the public key should be copied to the submission host of qsub
+  # Generate a new SSH key, that the user should copy to the submission host of qsub
   ssh-keygen -t rsa -N "" -C "PCNonline" -f ~/.ssh/id_rsa
   echo "copy the following content to ~/.ssh/authorized_keys"
   cat ~/.ssh/id_rsa.pub
