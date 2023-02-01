@@ -10,4 +10,4 @@ The model name follows the syntax *"{alg}\_{name}\_{sample}\_{n}sites"*:
 
 Example: 'BLR_lifespan_57K_82sites' makes use of the Bayesian Linear Regression algorithm, across the human lifespan, trained on ~57.000 samples from 82 different collection sites.
 
-Please note: the amount of available models is constantly growing, and more data types will continue to be supported. Use our chat [![Gitter](https://badges.gitter.im/PCNportal/community.svg)](https://gitter.im/PCNportal/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) if you have any specific requests.
+Please note: the number of available models is constantly growing, and more data types will continue to be supported. Use our chat [![Gitter](https://badges.gitter.im/PCNportal/community.svg)](https://gitter.im/PCNportal/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) if you have any specific requests.
