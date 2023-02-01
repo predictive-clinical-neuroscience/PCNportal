@@ -2,8 +2,8 @@
  services:
    dashboard:
     # This volume should replace copying .SSH keys, but does not seem to work with DockerHub on Windows.
-    #  volumes:
-    #    - C:\Users\piebar\Documents\GitHub\pcnonlinedev\client\.ssh:/root/.ssh
+     volumes:
+       - C:\Users\piebar\Documents\GitHub\pcnonlinedev\client\.ssh:/root/.ssh
 
     # The ports for local deployment.
      ports:
