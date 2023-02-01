@@ -1,9 +1,9 @@
 # Created by: Pieter Barkema
 # Date: February, 2022
 # Description:
-#    Users can access this online app to process their neuroimaging date
-#    with normative modelling. It should return visualizations 
-#    and results to users accessing from all over the world, 
+#    This file creates a GUI for uploading and processing neuroimaging data
+#    with normative modelling. The backend computes results and returns them to
+#    users accessing from all over the world.
 #    It is hosted as a website from a remote gunicorn server.
 
 
@@ -61,14 +61,13 @@ app.layout = html.Div([
         dcc.Tab(label='How to model', children=[
             html.Br(),
             html.Div(
-                dcc.Markdown(id="howto-readme", link_target="_blank",), style={'margin':'auto','width':"80%"}
+                dcc.Markdown(id="howto-readme", link_target="_blank", dangerously_allow_html=True), style={'margin':'auto','width':"80%"}
             )
         ]),
         dcc.Tab(label='Model information', children=[
             html.Br(),
             html.Div(
                 dcc.Markdown(id="modelinfo-readme", link_target="_blank",), style={'margin':'auto','width':"80%"},
-                
             )
         ]),
 
@@ -84,14 +83,14 @@ app.layout = html.Div([
 
                 html.Br(),
                 html.Label('Data type'),
-                dcc.Dropdown(options = retrieve_options(), id='data-type'),
+                dcc.Dropdown(['please select data type first...'], 'please select data type first...', id='data-type'),#options = retrieve_options()
                 
                 html.Br(),
                 html.Label('Normative Model'),
                 dcc.Dropdown(['please select data type first...'], 'please select data type first...', id='model-selection'),
                 html.Br(),
                 dcc.Markdown(id="model-readme", link_target="_blank", dangerously_allow_html=True), 
-                html.Br(),
+                
                 html.Label('Select data file format'),
                 # Only .csv is supported at this time
                 dcc.Dropdown(['.csv'], '.csv', id='file-format'),
@@ -204,10 +203,10 @@ app.layout = html.Div([
     ])
     ),
     html.Div(
-        style={'padding':'1%','position': 'absolute', 'left': '85%', 'top': '100%'},
+        style={'position': 'absolute', 'left': '78%', 'top': '85%', 'height':'45%', 'width':'32%'}, #'padding':'0%', 'left': '99%', 'top': '97%',
         children=[
             # Workaround: readmes didn't load. Let image loading trigger the readme loading. 
-            html.Img(id="load-readme-trigger",src='assets/merged_images.png', alt='image', style={'float': 'right', 'padding': '0%','height':'130%', 'width':'130%'}),
+            html.Img(id="load-readme-trigger",src='assets/merged_images_update.png', alt='image', style={'height':'100%', 'width':'90%'}), #'padding': '0%', , 'height':'700%', 'width':'700%'
         ]
     ),
     ], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'})
@@ -404,7 +403,6 @@ def update_output(email_address, data_type, model_selection, test_contents, test
         adapt_path = os.path.join(session_path, "adapt.pkl").replace("\\","/")
         test_data_pd.to_pickle(test_path)
         adapt_data_pd.to_pickle(adapt_path)
-        
 
         username = os.environ['MYUSER'] #"piebar@mentat004.dccn.nl"
         projectdir = os.environ['PROJECTDIR'] #"/project_cephfs/3022051.01"
