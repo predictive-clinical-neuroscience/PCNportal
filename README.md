@@ -1,4 +1,4 @@
-PCNportal is a website that provides access to modelling with finetuned normative models for neuroimaging analysis, pre-trained and applied with the package PCNtoolkit.
+PCNportal is a website that provides access to modelling with finetuned normative models for neuroimaging analysis, pre-trained and applied with the package [PCNtoolkit](https://pcntoolkit.readthedocs.io/en/latest/).
 
 ## Using the website
 The latest version of the website is available at https://pcnportal.dccn.nl/, and provides all instructions necessary to start modelling.
@@ -8,7 +8,7 @@ Please refer to the Wiki of this GitHub page to learn more about the implementat
 
 ## Features
 
-PCNportal provides a user-friendly lightweight GUI, but also adds functionality. The website:
+PCNportal provides a user-friendly lightweight GUI, but also adds functionality to PCNtoolkit. The website:
 - hosts all resources necessary to learn about normative modelling in theory and practice,
 - dynamically checks available models and provides model-specific information,
 - contains data control checks to point out errors and provides feedback on the request,
@@ -17,9 +17,21 @@ PCNportal provides a user-friendly lightweight GUI, but also adds functionality.
 - automatically runs, checks and manages parallelized computation jobs.
 
 ## Testing
-Testing demo
-Deploying the image
 
+Testing the website can be done through modelling with demo data (also see Wiki's client side page).
 
+To locally deploy the GUI without modelling functionality, please follow these instructions:
+* pull image from DockerHub
+* docker compose build
+* docker compose up
+* but SSH failure
 
+To test modelling functionality, please refer to PCNtoolkit tutorials and documentation.
+
+## Assistance
+To report bugs or issues or if you have any questions or feature requests, please use our [Gitter](https://gitter.im/PCNportal/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
+
+## License
+
+PCNportal is licensed under the GNU General Public License v3.0.
 
