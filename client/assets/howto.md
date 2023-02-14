@@ -1,6 +1,6 @@
 
 ### Modelling instructions
-(Don't yet have your own data ready? Scroll down to do a demo run.)
+(Don't have your own data ready yet? Scroll down to do the _Demo_ with sample data.)
 
 **First, we explore what normative model is best for you.**
 - Explore the meaning of model names in the 'Model information' tab.
@@ -27,17 +27,17 @@
 - Please be patient: the waiting time may vary according to model choice, data set and network traffic. Check your spam folder, and wait for 24 hours before requesting support through the PCNportal [![Gitter](https://badges.gitter.im/PCNportal/community.svg)](https://gitter.im/PCNportal/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
 
 **What can I do with my results?**
-The resulting z-scores represent individualized abnormalities, and follow-up analysis can exploit this information to learn more about the relationship between your provided data and cognitive ability or diagnostic measures. Some options for follow-up analysis are mass univariate group comparisons, post-hoc classification, and multivariate prediction, discussed in [Rutherford et al. (2022)](https://www.biorxiv.org/content/10.1101/2022.11.14.516460v1).
+The resulting z-scores represent the abnormalities per feature per subject. Follow-up analysis can exploit this information to learn more about the relationship between your data and cognitive ability or diagnostic measures on the individual level. Some options for follow-up analysis are mass univariate group comparisons, post-hoc classification, and multivariate prediction, discussed in [Rutherford et al. (2022)](https://www.biorxiv.org/content/10.1101/2022.11.14.516460v1).
 
 Normative modelling is also a very visual concept, and you can use visualize your own results with the following Python code: (insert link).
-
+<br />
 ---
+<br />
+### Demo  
 
-### Try the demo  
+Follow these instructions if you want to give the website a test run.
 
-If you just want to give the website a test run, follow these instructions.
-
-First, download the demo [test data](https://drive.google.com/uc?export=download&id=1S2uQ-lbP7km-OVLqQhehVisV1CwHDjKJ) and [adaptation data](https://drive.google.com/uc?export=download&id=1PjiA-zIzJFsvmHZiBtsj5P2dRfZeH6XV) from the FCON1000 project.
+First, download the demo [test data](https://drive.google.com/uc?export=download&id=1S2uQ-lbP7km-OVLqQhehVisV1CwHDjKJ) and [adaptation data](https://drive.google.com/uc?export=download&id=1PjiA-zIzJFsvmHZiBtsj5P2dRfZeH6XV) from the [FCON1000](http://fcon_1000.projects.nitrc.org/) initiative.
 
 Fill in these modelling settings in the 'Compute here!' tab:
 - for Data Type, select “ThickAvg”,
@@ -51,4 +51,4 @@ After submission, your tab should look something like below:
 
 <img src="assets/demo.png" width='70%' length='70%'/>
 
-The green box will appear some minutes later after computation is complete. When you see this box, it's time to check your inbox for results!
+The green box will appear some time later after computation is complete. When it shows up, it's time to check your inbox for results!

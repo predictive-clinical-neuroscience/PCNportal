@@ -41,10 +41,13 @@ def retrieve_options(data_type=None):
     
     # Convert to appropriate list format
     byte_to_string = str(output, encoding='UTF-8').strip()
-    string_to_list = ast.literal_eval(byte_to_string)
 
-    return string_to_list
-
+    # Catch empty strings when no connection to the server could be made.
+    try:
+        retrieved_information = ast.literal_eval(byte_to_string)
+    except (SyntaxError, ValueError, TypeError):
+        retrieved_information = ["No information could be retrieved. You are not connected to the server"]
+    return retrieved_information
 # -----------------------------------------------------------------
 # The GUI of the app is specified below.
 app.layout = html.Div([ 
@@ -83,7 +86,7 @@ app.layout = html.Div([
 
                 html.Br(),
                 html.Label('Data type'),
-                dcc.Dropdown(['please select data type first...'], 'please select data type first...', id='data-type'),#options = retrieve_options()
+                dcc.Dropdown(retrieve_options(), 'please select data type first...', id='data-type'),
                 
                 html.Br(),
                 html.Label('Normative Model'),
@@ -202,14 +205,22 @@ app.layout = html.Div([
         ]),
     ])
     ),
+#     html.Div(
+#         style={'position': 'absolute', 'left': '78%', 'top': '88%', 'height':'90px', 'width':'70px'}, #'padding':'0%', 'left': '99%', 'top': '97%',
+#         children=[
+#             # Workaround: readmes didn't load. Let image loading trigger the readme loading. 
+#             html.Img(id="load-readme-trigger",src='assets/merged_images_update.png', alt='image', style={'height':'90%', 'width':'90%'}), #'padding': '0%', , 'height':'700%', 'width':'700%'
+#         ]
+# ),
+
+    ], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'}),
     html.Div(
-        style={'position': 'absolute', 'left': '78%', 'top': '85%', 'height':'45%', 'width':'32%'}, #'padding':'0%', 'left': '99%', 'top': '97%',
-        children=[
-            # Workaround: readmes didn't load. Let image loading trigger the readme loading. 
-            html.Img(id="load-readme-trigger",src='assets/merged_images_update.png', alt='image', style={'height':'100%', 'width':'90%'}), #'padding': '0%', , 'height':'700%', 'width':'700%'
-        ]
-    ),
-    ], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'})
+    style={'position': 'fixed', 'left': '68.5%', 'top': '-11%', 'height':'32.5%', 'width':'19.5%'}, #'padding':'0%', 'left': '99%', 'top': '97%',
+    children=[
+        # Workaround: readmes didn't load. Let image loading trigger the readme loading. 
+        html.Img(id="load-readme-trigger",src='assets/merged_images_update.png', alt='image', style={'height':'90%', 'width':'90%'}), #'padding': '0%', , 'height':'700%', 'width':'700%'
+    ]
+),
 ])
 # -----------------------------------------------------------------
 # All functions that handle input and output for the Dash components.
@@ -258,10 +269,13 @@ def model_information(model_selection, data_type):
         byte_to_string = str(output, encoding='UTF-8')
 
         # Extract downloadable template link from readme.
-        import re
-        download_pattern = r"\[Download\]\((.+)\)"
-        download_link = re.search(download_pattern, byte_to_string).group(1)
-        
+        try:
+            import re
+            download_pattern = r"\[Download\]\((.+)\)"
+            download_link = re.search(download_pattern, byte_to_string).group(1)
+        # Catch errors caused by no server connection.    
+        except AttributeError:
+            return no_update, no_update, no_update
         # Get mandatory columns, i.e. covs and batch effects.
         cat_model_covsbe = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", covsbe_path]
         p = Popen(cat_model_covsbe, stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -470,4 +484,4 @@ def list_adapt_file(adapt_fname):
 
 # Serve the app upon running the script.
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server()#debug=True
