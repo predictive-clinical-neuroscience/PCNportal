@@ -19,7 +19,7 @@ _**Disclaimer:** this application strives to comply with best practices in data 
 __Core development team:__                                                                      
 [Pieter Barkema](https://twitter.com/pieterbarkema) (Main developer) (pieterwbarkema@gmail.com)
 [Andre Marquand](https://scholar.google.com/citations?user=hOsZZeQAAAAJ&hl=en) (Project manager) (andre.marquand@donders.ru.nl)
-[Hong Lee](https://www.ru.nl/en/people/lee-h) (IT manager)
+[Hurng-Chun Lee](https://www.linkedin.com/in/hurng-chun-lee-50b40219/) (ICT support, DCCN Technical Group)
 [Saige Rutherford](https://www.beingsaige.com/) (Data engineer)  
 <br />
 
