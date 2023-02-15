@@ -29,7 +29,7 @@
 **What can I do with my results?**
 The resulting z-scores represent the abnormalities per feature per subject. Follow-up analysis can exploit this information to learn more about the relationship between your data and cognitive ability or diagnostic measures on the individual level. Some options for follow-up analysis are mass univariate group comparisons, post-hoc classification, and multivariate prediction, discussed in [Rutherford et al. (2022)](https://www.biorxiv.org/content/10.1101/2022.11.14.516460v1).
 
-Normative modelling is also a very visual concept, and you can use visualize your own results with the following Python code: (insert link).
+Normative modelling is also a very visual concept, but visualization is not supported on the website yet. This [notebook](https://github.com/predictive-clinical-neuroscience/braincharts/blob/master/scripts/apply_normative_models_ct.ipynb) does include the code to plots your results.
 <br />
 ---
 <br />
