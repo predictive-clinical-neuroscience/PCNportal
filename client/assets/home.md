@@ -24,6 +24,6 @@ __Core development team:__
 <br />
 
 __Important contributors:__
-Mosi Kia (Data Scientist)
-Hannah Savage (UX design, Data Scientist)
+Mosi Kia (Data scientist)
+[Hannah Savage](https://twitter.com/DrHannahSavage) (UX design, Data scientist)
 Christian Beckmann (Institutional support)

@@ -3,7 +3,7 @@
 (Don't have your own data ready yet? Scroll down to do the _Demo_ with sample data.)
 
 **First, we explore what normative model is best for you.**
-- Explore the meaning of model names in the 'Model information' tab.
+- Explore model naming conventions in the 'Model information' tab.
 - Then, choose a normative model in the 'Compute here!' tab:
     - Select the _Data Type_ you want to use.
     - Explore the available models for this data type in the _Normative Model_ dropdown menu. Selecting a model will show model-specific information on training data and hyperparameters.
@@ -17,19 +17,19 @@
 - Upload your test and adaptation data in the right boxes.
 
 **Finaly, submit your computation request...**
-- Enter the email address where you would like to receive your results download link.
+- Enter the email address where you would like to receive your results.
 - Press _Submit_. Congratulations! 
-- Wait a moment to receive feedback on how well your data matches the template, and to receive your session ID.
+- Wait a moment to receive your session ID and feedback on how well your data matches the template.
 
 **What happens next?**
-- Your session ID will be provided after the request is submitted. If you would like to request help with troubleshooting, make sure to save this ID.
-- Within several hours, you should receive an email in your inbox with a link to download both your results and model-related error measures.
-- Please be patient: the waiting time may vary according to model choice, data set and network traffic. Check your spam folder, and wait for 24 hours before requesting support through the PCNportal [![Gitter](https://badges.gitter.im/PCNportal/community.svg)](https://gitter.im/PCNportal/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
+- Make sure to save your session ID if you would like to request help with troubleshooting.
+- Within some time you should receive an email in your inbox with a link to download both your results and model-related error measures.
+- Please be patient: the waiting time may vary according to model choice, data set and network traffic. Check your spam folder, and wait several hours before requesting support through the PCNportal [![Gitter](https://badges.gitter.im/PCNportal/community.svg)](https://gitter.im/PCNportal/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
 
 **What can I do with my results?**
-The resulting z-scores represent the abnormalities per feature per subject. Follow-up analysis can exploit this information to learn more about the relationship between your data and cognitive ability or diagnostic measures on the individual level. Some options for follow-up analysis are mass univariate group comparisons, post-hoc classification, and multivariate prediction, discussed in [Rutherford et al. (2022)](https://www.biorxiv.org/content/10.1101/2022.11.14.516460v1).
+The resulting z-scores represent the deviations per feature per subject. Follow-up analysis can exploit this information to learn more about the relationship between your data and, for example, cognitive ability or diagnostic measures on the individual level. Some options for follow-up analysis are mass univariate group comparisons, post-hoc classification, and multivariate prediction, discussed in [Rutherford et al. (2022)](https://www.biorxiv.org/content/10.1101/2022.11.14.516460v1).
 
-Normative modelling is also a very visual concept, but visualization is not supported on the website yet. This [notebook](https://github.com/predictive-clinical-neuroscience/braincharts/blob/master/scripts/apply_normative_models_ct.ipynb) does include the code to plots your results.
+Normative modelling is also a very visual concept, but visualization is not directly supported on the website yet. You can use the code at the bottom of this Jupyter [notebook](https://github.com/predictive-clinical-neuroscience/braincharts/blob/master/scripts/apply_normative_models_ct.ipynb) to plot your own results.
 <br />
 ---
 <br />
