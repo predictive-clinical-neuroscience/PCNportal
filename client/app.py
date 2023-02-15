@@ -46,7 +46,7 @@ def retrieve_options(data_type=None):
     try:
         retrieved_information = ast.literal_eval(byte_to_string)
     except (SyntaxError, ValueError, TypeError):
-        retrieved_information = ["No information could be retrieved. You are not connected to the server"]
+        retrieved_information = ["No information could be retrieved. You are not connected to the server."]
     return retrieved_information
 # -----------------------------------------------------------------
 # The GUI of the app is specified below.
@@ -215,7 +215,7 @@ app.layout = html.Div([
 
     ], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'}),
     html.Div(
-    style={'position': 'fixed', 'left': '68.5%', 'top': '-11%', 'height':'32.5%', 'width':'19.5%'}, #'padding':'0%', 'left': '99%', 'top': '97%',
+    style={'position': 'fixed', 'left': '68.5%', 'top': '-11%', 'height':'32.5%', 'width':'19%'}, #'padding':'0%', 'left': '99%', 'top': '97%',
     children=[
         # Workaround: readmes didn't load. Let image loading trigger the readme loading. 
         html.Img(id="load-readme-trigger",src='assets/merged_images_update.png', alt='image', style={'height':'90%', 'width':'90%'}), #'padding': '0%', , 'height':'700%', 'width':'700%'
