@@ -13,4 +13,4 @@ env > /tmp/env.txt
 # May be related to Windows + Docker Desktop flaws
 chmod -R 600 /root/
 gunicorn --timeout=1000 --workers=5 --threads=1 -b 0.0.0.0:80 app:server
-# ssh ***REMOVED***
+# ssh piebar@mentat004.dccn.nl

@@ -10,7 +10,7 @@ Created on Wed Jun  1 12:01:11 2022
 def main():
     import os, sys
     chosen_dir = sys.argv[1]
-    full_path = os.path.join("***REMOVED***", chosen_dir)
+    full_path = os.path.join("/project_cephfs/3022051.01", chosen_dir)
     subdirs = os.listdir(full_path)
     print(subdirs)
     return subdirs

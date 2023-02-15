@@ -5,14 +5,14 @@ from webdav3.client import Client
 def send_results(session_id, email_address):#results_path #session_id="session_id427076", email_address="pieterwbarkema@gmail.com"
     import os
     session_subdir = "sessions/" + session_id
-    session_path = "***REMOVED***/sessions/" + session_id
+    session_path = "/project_cephfs/3022051.01/sessions/" + session_id
     # for now we remove idp_results
     #results_dir = "idp_results"
     #get sessions/session_id
     
     #dropbox_dir = os.path.join("/sessions", session_id)
-    from_path = os.path.join("***REMOVED***/sessions/", session_id, "results.zip")
-    session_path = os.path.join("***REMOVED***", "sessions", session_id)
+    from_path = os.path.join("/project_cephfs/3022051.01/sessions/", session_id, "results.zip")
+    session_path = os.path.join("/project_cephfs/3022051.01", "sessions", session_id)
     #zip_name =  the optional subdir within projects folder that contain a session's results.
     zip_name = "results.zip"
 
@@ -69,7 +69,7 @@ def upload_results(from_path, session_id):
     client.verify = False # To not check SSL certificates (Default = True)
     # client.session.proxies(...) # To set proxy directly into the session (Optional)
     # client.session.auth(...) # To set proxy auth directly into the session (Optional)
-    #from_path = "***REMOVED***/sessions/session_id924687/Z_transfer.pkl"
+    #from_path = "/project_cephfs/3022051.01/sessions/session_id924687/Z_transfer.pkl"
     #curl -T filetoput.xml http://www.url.com/filetoput.xml
 
     # fails if dir already exists, can use 'list' to check first
