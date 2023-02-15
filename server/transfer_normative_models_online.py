@@ -25,7 +25,7 @@ def transfer_normative_models():
     import pickle
     import random
     # where the project dir lives
-    root_dir = "***REMOVED***/"#sys.argv[1]
+    root_dir = "/project_cephfs/3022051.01/"#sys.argv[1]
     # the name of the chosen model
     model_name= sys.argv[2]#"HBR_models_self_trained"#"HBR_HOM_linear_0.20"##
     data_type = sys.argv[3]#"ThickAvg"##
@@ -40,8 +40,8 @@ def transfer_normative_models():
     if not os.path.isdir(session_path):
                 os.mkdir(session_path) 
     os.chdir(session_path)
-    df_te = pd.read_pickle(os.path.join(session_path, "test.pkl"))#pd.read_csv("***REMOVED***/docs/OpenNeuroTransfer_te.csv") #
-    df_ad= pd.read_pickle(os.path.join(session_path, "adapt.pkl"))#pd.read_csv("***REMOVED***/docs/OpenNeuroTransfer_tr.csv")#
+    df_te = pd.read_pickle(os.path.join(session_path, "test.pkl"))#pd.read_csv("/project_cephfs/3022051.01/docs/OpenNeuroTransfer_te.csv") #
+    df_ad= pd.read_pickle(os.path.join(session_path, "adapt.pkl"))#pd.read_csv("/project_cephfs/3022051.01/docs/OpenNeuroTransfer_tr.csv")#
 
     # site enumeration here:
     sites = np.unique(df_te['site'])
