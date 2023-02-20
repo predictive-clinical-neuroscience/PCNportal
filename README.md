@@ -28,6 +28,12 @@ To locally deploy the GUI without modelling functionality, please follow these i
 
 To test modelling functionality, please refer to PCNtoolkit tutorials and documentation.
 
+## Network diagram
+
+PCNportal is a client-server application that combines the functionality of an easy GUI with that of heavy duty parallelized computation of the backend. We use various services, such as Docker, gunicorn and TORQUE to accomplish this:
+
+![networkdiagram2](https://user-images.githubusercontent.com/39303377/210103348-4473e738-2fd3-4568-981a-0607f8cfd3f7.png)
+
 ## Assistance
 To report bugs or issues or if you have any questions or feature requests, please use our [Gitter](https://gitter.im/PCNportal/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
 
