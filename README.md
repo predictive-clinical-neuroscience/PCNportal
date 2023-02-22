@@ -2,7 +2,7 @@ PCNportal is a website that facilitates access to modelling with finetuned norma
 
 This GitHub contains the client side and server side code for the [PCNportal](https://pcnportal.dccn.nl/) project. The client side contains code to facilitate the GUI and website service, while the server side code contains functionality to model with PCNtoolkit on a remote server and share results.
 
-Please refer to the Wiki of this GitHub page to learn more about the implementation and development pipeline of the website.
+Please refer to the GitHub [Wiki](https://github.com/predictive-clinical-neuroscience/PCNportal/wiki) to learn more about the implementation and development pipeline of the website, also containing tutorials and a demo.
 
 ## Using the website
 
