@@ -16,14 +16,17 @@ from webdav3.client import Client
 def send_results(session_id, email_address):
     import os
     session_path = "/project_cephfs/3022051.01/sessions/" + session_id
-    
     from_path = os.path.join("/project_cephfs/3022051.01/sessions/", session_id, "results.zip")
     session_path = os.path.join("/project_cephfs/3022051.01", "sessions", session_id)
     zip_name = "results.zip"
 
+    # Zip up the results.
     zipper(session_path, zip_name)
     
+    # Upload them to SURFdrive.
     upload_results(from_path, session_id)
+
+    # Email the results to the user.
     email_results(session_id, email_address)
 
 def email_results(session_id, email_receiver):
@@ -65,18 +68,15 @@ def upload_results(from_path, session_id):
     remote_session = "/sessions/" + session_id 
     client = Client(options)
     client.verify = False # To not check SSL certificates (Default = True)
-
-    # fails if dir already exists, can use 'list' to check first
     client.execute_request("mkdir", remote_session)
     
     to_path = remote_session + "/results.zip"
     client.upload_sync(remote_path = to_path, local_path = from_path)
 
-def zipper(dirName, zipFileName): #filter
+def zipper(dirName, zipFileName):
     from zipfile import ZipFile
     import os
     from os.path import basename
-    # create a ZipFile object
     os.chdir(dirName)
     with ZipFile(zipFileName, 'w') as zipObj:
         # Iterate over all the files in directory
