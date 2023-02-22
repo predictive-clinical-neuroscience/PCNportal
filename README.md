@@ -27,13 +27,14 @@ To locally deploy the GUI without modelling functionality, please follow these i
 * Use 'docker-compose up'
 * Provides access to the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/), but not to the backend.
 
-To test the backend modelling functionality, please refer to PCNtoolkit [tutorials](https://pcntoolkit.readthedocs.io/en/latest/pages/other_predictive_models.html#accuracy-of-predictions) and corresponding documentation.
+To test the backend modelling functionality, please refer to PCNtoolkit [tutorials]:
+![Pipeline PCNportal](https://user-images.githubusercontent.com/39303377/220601095-5e27b7fe-a9d4-491e-88f9-f4f3db3a59ad.png) and corresponding documentation.
 
 ## Network diagram
 
 PCNportal is a client-server application that combines the functionality of an easy GUI with that of heavy duty parallelized computation of the backend. We use various services, such as [Flask](https://flask.palletsprojects.com/en/2.2.x/), [Docker](https://www.docker.com/), [gunicorn](https://gunicorn.org/), [Gmail](https://developers.google.com/gmail/api/guides), [SURFdrive](surfdrive.surf.nl) and [TORQUE](https://wiki.archlinux.org/title/TORQUE) to accomplish this:
 
-![networkdiagram2](https://user-images.githubusercontent.com/39303377/210103348-4473e738-2fd3-4568-981a-0607f8cfd3f7.png)
+![networkdiagram2]()
 
 ## Assistance
 To report bugs or issues or if you have any questions or feature requests, please use our [Gitter](https://gitter.im/PCNportal/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
