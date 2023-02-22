@@ -1,6 +1,7 @@
  version: '3.7'
  services:
    dashboard:
+   C:\Users\piebar\Documents\GitHub\pcnonlinedev\client\.ssh:/root/.ssh
     # The ports for local deployment.
      ports:
        - 5000:80
