@@ -20,9 +20,9 @@ The website:
 - cleans up data older than thirty days to comply with privacy guidelines,
 - automatically runs, checks and manages parallelized computation jobs.
 
-## Testing
+## Testing & Installation
 
-Testing the website can be done through modelling with demo data (also see Wiki's client side page).
+Testing the website's functionality can be done through modelling with demo data, as can be found on the website under 'How to Model' (but also available in the Wiki's client side page).
 
 To locally deploy the GUI without modelling functionality, please follow these instructions. You will first need to install [Docker](https://docs.docker.com/get-docker/):
 * Clone the GitHub repository.
@@ -32,6 +32,8 @@ To locally deploy the GUI without modelling functionality, please follow these i
 * Access the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/).
 
 The latest version of the image can be found at our [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general).
+
+During this process, the dependencies for PCNportal will be installed as provided in [requirements.txt](https://github.com/predictive-clinical-neuroscience/PCNportal/blob/main/client/requirements.txt).
 
 To test the backend modelling functionality, please refer to PCNtoolkit [tutorials] and corresponding documentation.
 
@@ -43,6 +45,13 @@ PCNportal is a client-server application that combines the functionality of an e
 
 ## Assistance
 To report bugs or issues or if you have any questions or feature requests, please use our [Gitter](https://gitter.im/PCNportal/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
+
+## Contributions
+Contributions of models are accepted and encouraged by PCNportal. Models trained with PCNtoolkit can be added instantly after formatting to the standard directory structure, as shown [here](<img width="166" alt="image" src="https://user-images.githubusercontent.com/39303377/220667045-60502ea0-308c-4b5a-9a07-c74a979f518f.png">. The features that were used in training should be saved in 'idp_ids.txt', the names of data collection sites in 'site_ids.txt', the names of mandatory columns (covariates and site effects) in 'mandatory_columns.txt' and any information about the model and how its trained (including hyperparameters) in the 'README.md'.
+
+Models not trained with PCNtoolkit can be accepted when a Python script is provided for transfer learning. Please contact us on Gitter to discuss such options.
+
+Models will need to be validated before being hosted on the website.
 
 ## License
 
