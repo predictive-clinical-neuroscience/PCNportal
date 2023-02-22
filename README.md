@@ -35,7 +35,7 @@ The latest version of the image can be found at our [DockerHub](https://hub.dock
 
 During this process, the dependencies for PCNportal will be installed as provided in [requirements.txt](https://github.com/predictive-clinical-neuroscience/PCNportal/blob/main/client/requirements.txt).
 
-To test the backend modelling functionality, please refer to PCNtoolkit [tutorials] and corresponding documentation.
+To test the backend modelling functionality, please refer to PCNtoolkit [tutorials](https://pcntoolkit.readthedocs.io/en/latest/pages/normative_modelling_walkthrough.html) and corresponding documentation.
 
 ## Network diagram
 
