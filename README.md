@@ -6,7 +6,7 @@ Please refer to the GitHub [Wiki](https://github.com/predictive-clinical-neurosc
 
 ## Using the website
 
-The latest version of the website is available at https://pcnportal.dccn.nl/, and provides all instructions necessary to start modelling and how to use the results. Only an appropriate data set is needed, although a demo is provided on the website under 'How to model'.
+The latest version of the website is available at https://pcnportal.dccn.nl/, and provides all instructions necessary to start modelling and how to use the results. Only a data set of supported models is needed. If not available, a demo is provided to test the website under the tab 'How to model'.
 
 ## Features
 
@@ -25,13 +25,13 @@ Testing the website can be done through modelling with demo data (also see Wiki'
 To locally deploy the GUI without modelling functionality, please follow these instructions:
 * Pull image from [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general)
 * Use 'docker-compose up'
-* Provides access to the GUI at localhost:5000 but not to the backend.
+* Provides access to the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/), but not to the backend.
 
-To test modelling functionality, please refer to PCNtoolkit [tutorials](https://pcntoolkit.readthedocs.io/en/latest/pages/other_predictive_models.html#accuracy-of-predictions) and documentation.
+To test the backend modelling functionality, please refer to PCNtoolkit [tutorials](https://pcntoolkit.readthedocs.io/en/latest/pages/other_predictive_models.html#accuracy-of-predictions) and corresponding documentation.
 
 ## Network diagram
 
-PCNportal is a client-server application that combines the functionality of an easy GUI with that of heavy duty parallelized computation of the backend. We use various services, such as Docker, gunicorn, gmail, SURFdrive and TORQUE, to accomplish this:
+PCNportal is a client-server application that combines the functionality of an easy GUI with that of heavy duty parallelized computation of the backend. We use various services, such as [Flask](https://flask.palletsprojects.com/en/2.2.x/), [Docker](https://www.docker.com/), [gunicorn](https://gunicorn.org/), [Gmail](https://developers.google.com/gmail/api/guides), [SURFdrive](surfdrive.surf.nl) and [TORQUE](https://wiki.archlinux.org/title/TORQUE) to accomplish this:
 
 ![networkdiagram2](https://user-images.githubusercontent.com/39303377/210103348-4473e738-2fd3-4568-981a-0607f8cfd3f7.png)
 
