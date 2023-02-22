@@ -24,9 +24,9 @@ The website:
 
 Testing the website's functionality can be done through modelling with demo data, as can be found on the website under 'How to Model' (but also available in the Wiki's client side page).
 
-To locally deploy the GUI without modelling functionality, please follow these instructions. You will first need to install [Docker](https://docs.docker.com/get-docker/):
+To locally deploy the GUI without modelling functionality, please follow these instructions. You will first need to install [Docker](https://docs.docker.com/get-docker/), and then:
 * Clone the GitHub repository.
-* Open up your command console and go to the /client/ subdirectory.
+* Open up your command console and go to the /client/ subdirectory of your local repository clone.
 * Use 'docker-compose build' to build the container.
 * Use 'docker-compose up' to run the application.
 * Access the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/).
