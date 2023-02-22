@@ -6,7 +6,7 @@ Please refer to the GitHub [Wiki](https://github.com/predictive-clinical-neurosc
 
 ## Using the website
 
-The latest version of the website is available at https://pcnportal.dccn.nl/, and provides all instructions necessary to start modelling and how to use the results. Only a data set of supported models is needed. If not available, a demo is provided to test the website under the tab 'How to model'.
+The latest version of the website is available at https://pcnportal.dccn.nl/ and provides all instructions necessary to start modelling and explains how to use the results. Only a data set of supported models is needed to get started, but we also provide data to run a demo under the tab 'How to model'.
 
 ## Features
 
