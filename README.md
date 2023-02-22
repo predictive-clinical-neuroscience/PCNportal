@@ -49,7 +49,7 @@ To report bugs or issues or if you have any questions or feature requests, pleas
 ## Contributions
 Contributions of models are accepted and encouraged by PCNportal. Models trained with PCNtoolkit can be added instantly after formatting to the standard directory structure. 
 
-Example:
+Example:  
 <img width="166" alt="image" src="https://user-images.githubusercontent.com/39303377/220667045-60502ea0-308c-4b5a-9a07-c74a979f518f.png">
 
 'Models' contains all models with naming convention NM\_0\_\{x\}\_fit.pkl where _x_ is the model number corresponding to the order of idp ids.
