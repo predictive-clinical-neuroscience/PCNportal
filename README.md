@@ -10,7 +10,9 @@ The latest version of the website is available at https://pcnportal.dccn.nl/, an
 
 ## Features
 
-PCNportal provides a user-friendly lightweight GUI, but also adds functionality to PCNtoolkit. The website:
+PCNportal provides a user-friendly lightweight GUI, but also adds functionality to PCNtoolkit. 
+
+The website:
 - hosts resources to learn about normative modelling in theory and practice,
 - dynamically updates available models and model-specific information,
 - checks data for errors and provides feedback,
@@ -22,14 +24,16 @@ PCNportal provides a user-friendly lightweight GUI, but also adds functionality 
 
 Testing the website can be done through modelling with demo data (also see Wiki's client side page).
 
-To locally deploy the GUI without modelling functionality, please follow these instructions after installing [Docker](https://docs.docker.com/get-docker/):
-* Pull the latest image from our [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general). For example:
-''' docker pull ifdevdocker/pcnonlinedev:0.5-beta3'''
-* ?> 'docker-compose up'
-* Provides access to the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/), but not to the backend.
+To locally deploy the GUI without modelling functionality, please follow these instructions. You will first need to install [Docker](https://docs.docker.com/get-docker/):
+* Clone the GitHub repository.
+* Open up your command console and go to the /client/ subdirectory.
+* Use 'docker-compose build' to build the container.
+* Use 'docker-compose up' to run the application.
+* Access the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/).
+
+The latest version of the image can be found at our [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general).
 
 To test the backend modelling functionality, please refer to PCNtoolkit [tutorials] and corresponding documentation.
-
 
 ## Network diagram
 
