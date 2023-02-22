@@ -9,8 +9,6 @@ if [ ! -f ~/.ssh/id_rsa ]; then
   cat ~/.ssh/id_rsa.pub
 fi
 env > /tmp/env.txt
-# This chmod has to be here and not in Dockerfile, because it will strangely not have an effect.
-# May be related to Windows + Docker Desktop flaws
+
 chmod -R 600 /root/
 gunicorn --timeout=1000 --workers=5 --threads=1 -b 0.0.0.0:80 app:server
-# ssh piebar@mentat004.dccn.nl
