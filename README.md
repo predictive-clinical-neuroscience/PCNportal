@@ -22,9 +22,10 @@ PCNportal provides a user-friendly lightweight GUI, but also adds functionality 
 
 Testing the website can be done through modelling with demo data (also see Wiki's client side page).
 
-To locally deploy the GUI without modelling functionality, please follow these instructions:
-* Pull image from [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general)
-* Use 'docker-compose up'
+To locally deploy the GUI without modelling functionality, please follow these instructions after installing [Docker](https://docs.docker.com/get-docker/):
+* Pull the latest image from our [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general). For example:
+''' docker pull ifdevdocker/pcnonlinedev:0.5-beta3'''
+* ?> 'docker-compose up'
 * Provides access to the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/), but not to the backend.
 
 To test the backend modelling functionality, please refer to PCNtoolkit [tutorials] and corresponding documentation.
