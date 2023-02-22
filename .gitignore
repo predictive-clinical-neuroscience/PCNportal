@@ -145,7 +145,8 @@ docs/phenotypes_lh.txt
 docs/phenotypes_rh.txt
 docs/phenotypes_sc.txt
 docs/site_ids_82sites.txt
-client/docker-compose*
+client/docker-compose.override.yml
+client/docker-compose.yaml
 client/.ssh/*
 server/config.py
 .git.bfg-report/*
