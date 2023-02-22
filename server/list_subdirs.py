@@ -3,7 +3,12 @@
 """
 Created on Wed Jun  1 12:01:11 2022
 
-@author: piebar
+@author: Pieter Barkema
+
+This script lists the available data types and corresponding models.
+It is executed on the server side and the output is provided to the client side.
+The website displays this information in dropdown selection menus.
+
 """
 
 
