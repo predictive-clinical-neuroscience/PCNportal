@@ -13,9 +13,9 @@ The website displays this information in dropdown selection menus.
 
 
 def main():
-    import os, sys
+    import os, sys, config
     chosen_dir = sys.argv[1]
-    full_path = os.path.join("/project_cephfs/3022051.01", chosen_dir)
+    full_path = os.path.join(config.project_dir, chosen_dir)
     subdirs = os.listdir(full_path)
     print(subdirs)
     return subdirs
