@@ -1,4 +1,4 @@
-[PCNportal](https://pcnportal.dccn.nl/) is a website that facilitates access to modelling with finetuned normative models for neuroimaging analysis that are pre-trained and applied with the Python package [PCNtoolkit](https://pcntoolkit.readthedocs.io/en/latest/). Normative modelling is increasingly in demand to analyze individual variability in neuroimaging and neuropsychiatry.
+[PCNportal](https://pcnportal.dccn.nl/) is a website that facilitates access to modelling with finetuned normative models for neuroimaging analysis that are pre-trained and applied with the Python package [PCNtoolkit](https://pcntoolkit.readthedocs.io/en/latest/). Normative modelling is increasingly in demand to analyze the differences between individual brains in neuroimaging and neuropsychiatry.
 
 This GitHub contains the client side and server side code for the PCNportal project. The client side contains code to facilitate the GUI and website service, while the server side code contains functionality to model with PCNtoolkit on a remote server and share results.
 
