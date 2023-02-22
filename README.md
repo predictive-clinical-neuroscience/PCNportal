@@ -10,7 +10,9 @@ The latest version of the website is available at https://pcnportal.dccn.nl/, an
 
 ## Features
 
-PCNportal provides a user-friendly lightweight GUI, but also adds functionality to PCNtoolkit. The website:
+PCNportal provides a user-friendly lightweight GUI, but also adds functionality to PCNtoolkit. 
+
+The website:
 - hosts resources to learn about normative modelling in theory and practice,
 - dynamically updates available models and model-specific information,
 - checks data for errors and provides feedback,
