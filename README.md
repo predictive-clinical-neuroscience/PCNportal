@@ -57,7 +57,7 @@ The features that were used in training should be saved in 'idp_ids.txt', the na
 
 Models not trained with PCNtoolkit can be accepted when a Python script is provided for transfer learning. Please contact us on Gitter to discuss such options.
 
-Models will need to be validated before being hosted on the website.
+Models will be tested by experts before being hosted on the website.
 
 ## License
 
