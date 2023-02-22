@@ -1,4 +1,4 @@
-PCNportal is a website that facilitates access to modelling with finetuned normative models for neuroimaging analysis, that are pre-trained and applied with the package [PCNtoolkit](https://pcntoolkit.readthedocs.io/en/latest/).
+PCNportal is a website that facilitates access to modelling with finetuned normative models for neuroimaging analysis that are pre-trained and applied with the Python package [PCNtoolkit](https://pcntoolkit.readthedocs.io/en/latest/).
 
 This GitHub contains the client side and server side code for the [PCNportal](https://pcnportal.dccn.nl/) project. The client side contains code to facilitate the GUI and website service, while the server side code contains functionality to model with PCNtoolkit on a remote server and share results.
 
@@ -33,7 +33,7 @@ To test the backend modelling functionality, please refer to PCNtoolkit [tutoria
 
 ## Network diagram
 
-PCNportal is a client-server application that combines the functionality of an easy GUI with that of heavy duty parallelized computation of the backend. We use various services, such as [Flask](https://flask.palletsprojects.com/en/2.2.x/), [Docker](https://www.docker.com/), [gunicorn](https://gunicorn.org/), [Gmail](https://developers.google.com/gmail/api/guides), [SURFdrive](surfdrive.surf.nl) and [TORQUE](https://wiki.archlinux.org/title/TORQUE) to accomplish this:
+PCNportal is a client-server application that combines the functionality of an easy GUI with that of heavy duty parallelized computation of the backend. We use various services, such as [Flask](https://flask.palletsprojects.com/en/2.2.x/), [Docker](https://www.docker.com/), [gunicorn](https://gunicorn.org/), [Gmail](https://developers.google.com/gmail/api/guides), [SURFdrive](surfdrive.surf.nl) and [TORQUE](https://wiki.archlinux.org/title/TORQUE) to accomplish this. A sketch of our network diagram:
 
 ![Pipeline PCNportal](https://user-images.githubusercontent.com/39303377/220601095-5e27b7fe-a9d4-491e-88f9-f4f3db3a59ad.png) 
 
