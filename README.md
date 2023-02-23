@@ -1,16 +1,18 @@
-PCNportal is a website that facilitates access to modelling with finetuned normative models for neuroimaging analysis that are pre-trained and applied with the Python package [PCNtoolkit](https://pcntoolkit.readthedocs.io/en/latest/).
+[PCNportal](https://pcnportal.dccn.nl/) is a website that facilitates access to modelling with finetuned normative models for neuroimaging analysis that are pre-trained and applied with the Python package [PCNtoolkit](https://pcntoolkit.readthedocs.io/en/latest/). Normative modelling is increasingly in demand to analyze the differences between individual brains in neuroimaging and neuropsychiatry.
 
-This GitHub contains the client side and server side code for the [PCNportal](https://pcnportal.dccn.nl/) project. The client side contains code to facilitate the GUI and website service, while the server side code contains functionality to model with PCNtoolkit on a remote server and share results.
+This GitHub contains the client side and server side code for the PCNportal project. The client side contains code to facilitate the GUI and website service, while the server side code contains functionality to model with PCNtoolkit on a remote server and share results.
 
 Please refer to the GitHub [Wiki](https://github.com/predictive-clinical-neuroscience/PCNportal/wiki) to learn more about the implementation and development pipeline of the website, also containing tutorials and a demo.
 
 ## Using the website
 
-The latest version of the website is available at https://pcnportal.dccn.nl/, and provides all instructions necessary to start modelling and how to use the results. Only a data set of supported models is needed. If not available, a demo is provided to test the website under the tab 'How to model'.
+The latest version of the website is available at https://pcnportal.dccn.nl/ and provides all instructions necessary to start modelling and explains how to use the results. Only a data set of supported models is needed to get started, but we also provide data to run a demo under the tab 'How to model'.
 
 ## Features
 
-PCNportal provides a user-friendly lightweight GUI, but also adds functionality to PCNtoolkit. The website:
+PCNportal provides a user-friendly lightweight GUI, but also adds functionality to PCNtoolkit. 
+
+The website:
 - hosts resources to learn about normative modelling in theory and practice,
 - dynamically updates available models and model-specific information,
 - checks data for errors and provides feedback,
@@ -18,18 +20,22 @@ PCNportal provides a user-friendly lightweight GUI, but also adds functionality 
 - cleans up data older than thirty days to comply with privacy guidelines,
 - automatically runs, checks and manages parallelized computation jobs.
 
-## Testing
+## Testing & Installation
 
-Testing the website can be done through modelling with demo data (also see Wiki's client side page).
+Testing the website's functionality can be done through modelling with demo data, as can be found on the website under 'How to Model' (but also available in the Wiki's client side page).
 
-To locally deploy the GUI without modelling functionality, please follow these instructions after installing [Docker](https://docs.docker.com/get-docker/):
-* Pull the latest image from our [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general). For example:
-''' docker pull ifdevdocker/pcnonlinedev:0.5-beta3'''
-* ?> 'docker-compose up'
-* Provides access to the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/), but not to the backend.
+To locally deploy the GUI without modelling functionality, please follow these instructions. You will first need to install [Docker](https://docs.docker.com/get-docker/), and then:
+* Clone the GitHub repository.
+* Open up your command console and go to the /client/ subdirectory of your local repository clone.
+* Use 'docker-compose build' to build the container.
+* Use 'docker-compose up' to run the application.
+* Access the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/).
 
-To test the backend modelling functionality, please refer to PCNtoolkit [tutorials] and corresponding documentation.
+The latest version of the image can be found at our [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general).
 
+During this process, the dependencies for PCNportal will be installed as provided in [requirements.txt](https://github.com/predictive-clinical-neuroscience/PCNportal/blob/main/client/requirements.txt).
+
+To test the backend modelling functionality, please refer to PCNtoolkit [tutorials](https://pcntoolkit.readthedocs.io/en/latest/pages/normative_modelling_walkthrough.html) and corresponding documentation.
 
 ## Network diagram
 
@@ -39,6 +45,19 @@ PCNportal is a client-server application that combines the functionality of an e
 
 ## Assistance
 To report bugs or issues or if you have any questions or feature requests, please use our [Gitter](https://gitter.im/PCNportal/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
+
+## Contributions
+Contributions of models are accepted and encouraged by PCNportal. Models trained with PCNtoolkit can be added instantly after adapting the standard directory structure. 
+
+Example:  
+<img width="166" alt="image" src="https://user-images.githubusercontent.com/39303377/220667045-60502ea0-308c-4b5a-9a07-c74a979f518f.png">
+
+'Models' contains all models with naming convention NM\_0\_\{x\}\_fit.pkl where _x_ is the model number corresponding to the order of idp ids.
+The features that were used in training should be saved in 'idp_ids.txt', the names of data collection sites in 'site_ids.txt', the names of mandatory columns (covariates and site effects) in 'mandatory_columns.txt'. All strings should be separated with 'return'. Any information about the model and how its trained (including hyperparameters) in the 'README.md'.
+
+Models not trained with PCNtoolkit can be accepted when a Python script is provided for transfer learning. Please contact us on Gitter to discuss such options.
+
+Models will be tested by experts before being hosted on the website.
 
 ## License
 

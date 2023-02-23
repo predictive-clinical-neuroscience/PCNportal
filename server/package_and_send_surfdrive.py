@@ -1,32 +1,33 @@
-import pathlib
-import pandas as pd
+"""
+Created on Wed Jun  1 12:01:11 2022
+
+@author: Pieter Barkema
+
+This script sends normative modelling results to the user.
+It connects to the SURFdrive to upload the results.
+Then, it retrieves a download link for the results, and
+emails the link to the user with the provided email address
+and by connecting to the Gmail API.
+
+"""
+
 from webdav3.client import Client
 
-def send_results(session_id, email_address):#results_path #session_id="session_id427076", email_address="pieterwbarkema@gmail.com"
+def send_results(session_id, email_address):
     import os
-    session_subdir = "sessions/" + session_id
     session_path = "/project_cephfs/3022051.01/sessions/" + session_id
-    # for now we remove idp_results
-    #results_dir = "idp_results"
-    #get sessions/session_id
-    
-    #dropbox_dir = os.path.join("/sessions", session_id)
     from_path = os.path.join("/project_cephfs/3022051.01/sessions/", session_id, "results.zip")
     session_path = os.path.join("/project_cephfs/3022051.01", "sessions", session_id)
-    #zip_name =  the optional subdir within projects folder that contain a session's results.
     zip_name = "results.zip"
 
+    # Zip up the results.
+    zipper(session_path, zip_name)
     
-
-    # what results do we want to use?
-    #filter = lambda name : 'Z_' in name
-    zipper(session_path, zip_name) #filter
-    
+    # Upload them to SURFdrive.
     upload_results(from_path, session_id)
+
+    # Email the results to the user.
     email_results(session_id, email_address)
-    # and then email and everyone was happy
-    #share_download_link
-    #send_results(download_link, email_address)
 
 def email_results(session_id, email_receiver):
     import smtplib
@@ -67,37 +68,24 @@ def upload_results(from_path, session_id):
     remote_session = "/sessions/" + session_id 
     client = Client(options)
     client.verify = False # To not check SSL certificates (Default = True)
-    # client.session.proxies(...) # To set proxy directly into the session (Optional)
-    # client.session.auth(...) # To set proxy auth directly into the session (Optional)
-    #from_path = "/project_cephfs/3022051.01/sessions/session_id924687/Z_transfer.pkl"
-    #curl -T filetoput.xml http://www.url.com/filetoput.xml
-
-    # fails if dir already exists, can use 'list' to check first
     client.execute_request("mkdir", remote_session)
     
     to_path = remote_session + "/results.zip"
     client.upload_sync(remote_path = to_path, local_path = from_path)
 
-def zipper(dirName, zipFileName): #filter
+def zipper(dirName, zipFileName):
     from zipfile import ZipFile
     import os
     from os.path import basename
-    # create a ZipFile object
     os.chdir(dirName)
     with ZipFile(zipFileName, 'w') as zipObj:
         # Iterate over all the files in directory
-        # for folderName, subfolders, filenames in os.walk(dirName):
-            
-        #     for filename in filenames:
         for filename in os.listdir(dirName):
             if filter_results(filename):
-                # create complete filepath of file in directory
-                #filePath = os.path.join(folderName, filename)
-                # Add file to zip
                 zipObj.write(filename, filename)
+
 def filter_results(filename):
     measures = ["Z_", "SMSE_", "RMSE_", "Rho_", "pRho_", "MSLL_", "EXPV_"]
     for measure_type in measures:
         if measure_type in filename:
             return True
-#send_results()

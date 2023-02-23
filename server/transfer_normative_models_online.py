@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jul 14 16:29:33 2022
+Created on Thu Jul 14
 
-@author: piebar
+@author: Pieter Barkema
 
-Adapted from apply_normative_models.py and transfer_hbr_models.py.
+This script has partially been adapted from apply_normative_models.py (author: Saige Rutherford) and transfer_hbr_models.py (author: Seyed Mostafa Kia).
 
-The purpose of this script is to act as frontend for normative.transfer for all algorithms.
+The purpose of this script is to act as frontend for normative.transfer for all algorithms in an automated way.
+The script can be used by an online interface to feed in arguments to do transfer learning with pre-trained models.
+Finally, the script facilitates uploading and sharing results.
+
 """
-
-
-from socket import IPV6_DSTOPTS
-
 
 def transfer_normative_models():
     import os, sys
@@ -23,15 +22,15 @@ def transfer_normative_models():
     import os, sys
     import pandas as pd
     import pickle
-    import random
-    # where the project dir lives
-    root_dir = "/project_cephfs/3022051.01/"#sys.argv[1]
-    # the name of the chosen model
-    model_name= sys.argv[2]#"HBR_models_self_trained"#"HBR_HOM_linear_0.20"##
-    data_type = sys.argv[3]#"ThickAvg"##
-    session_id = sys.argv[4]#"session_id" + str(random.randint(100000,999999))##
+    from package_and_send_surfdrive import send_results
+
+    # Read in website input.
+    root_dir = "/project_cephfs/3022051.01/"
+    model_name= sys.argv[2]
+    data_type = sys.argv[3]
+    session_id = sys.argv[4]
     alg = model_name.split("_")[0]
-    email_address = sys.argv[6]#"pieterwbarkema@gmail.com" # #
+    email_address = sys.argv[6]
     model_info_path = os.path.join(root_dir, "models", data_type, model_name)
     model_path = os.path.join(root_dir, "models", data_type, model_name, "Models")
 
@@ -40,35 +39,33 @@ def transfer_normative_models():
     if not os.path.isdir(session_path):
                 os.mkdir(session_path) 
     os.chdir(session_path)
-    df_te = pd.read_pickle(os.path.join(session_path, "test.pkl"))#pd.read_csv("/project_cephfs/3022051.01/docs/OpenNeuroTransfer_te.csv") #
-    df_ad= pd.read_pickle(os.path.join(session_path, "adapt.pkl"))#pd.read_csv("/project_cephfs/3022051.01/docs/OpenNeuroTransfer_tr.csv")#
+    df_te = pd.read_pickle(os.path.join(session_path, "test.pkl"))
+    df_ad= pd.read_pickle(os.path.join(session_path, "adapt.pkl"))
 
-    # site enumeration here:
+    # Site enumeration.
     sites = np.unique(df_te['site'])
-    df_te['sitenum'] = np.nan # create empty column first
+    df_te['sitenum'] = np.nan
     for i, s in enumerate(sites):
         df_te['sitenum'].loc[df_te['site'] == s] = int(i)
-        #test_data['sitenum'] = test_data['sitenum'].astype(int)
-    df_ad['sitenum'] = np.nan # create empty column first
+    df_ad['sitenum'] = np.nan
     for i, s in enumerate(sites):
         df_ad['sitenum'].loc[df_ad['site'] == s] = int(i)
-    #adaptation_data['sitenum'] = adaptation_data['sitenum'].astype(int)
 
-    # Load idps and test ids
+    # Load IDPs and test ids
     site_names = 'site_ids.txt'
     with open(os.path.join(model_info_path, site_names)) as f:
         site_ids_tr = f.read().splitlines()
-    # extract a list of unique site ids from the test set
+    # Extract a list of unique site ids from the test set.
     site_ids_te =  sorted(set(df_te['site'].to_list()))
 
-    # test response variables
+    # Test response variables.
     with open(os.path.join(model_info_path,'idp_ids.txt')) as f:
         idps = f.read().splitlines()
     testing_sample = len(df_te.columns.intersection(set(idps)))
-    idps = idps#[:testing_sample]
+
     print(f'{idps=}')
-    # extract and save the response variables for the test set
-    # only extract columns that are available, shouldn't crash when a column is not found
+    # Extract and save the response variables for the test set.
+    # Only extract available columns.
     y_te = df_te[df_te.columns.intersection(set(idps))].to_numpy(dtype=float)
     resp_file_te = os.path.join(session_path, 'resp_te.pkl')
     with open(resp_file_te, 'wb') as file:
@@ -81,7 +78,7 @@ def transfer_normative_models():
         # limits for cubic B-spline basis 
         xmin = -5 
         xmax = 110
-        # test covariates blr
+        # Test covariates BLR.
         with open(os.path.join(model_info_path, site_names)) as f:
             site_ids_tr = f.read().splitlines()
         x_te = create_design_matrix(df_te[cols_cov], 
@@ -91,14 +88,14 @@ def transfer_normative_models():
                                         xmin = xmin, 
                                         xmax = xmax)
     elif alg == "HBR":
-        # test covariates hbr
+        # Test covariates HBR
         x_te = df_te[cols_cov].to_numpy(dtype=float)
     cov_file_te = os.path.join(session_path, 'cov_bspline_te.pkl')
     with open(cov_file_te, 'wb') as file:
         pickle.dump(pd.DataFrame(x_te), file)
 
     if all(elem in site_ids_tr for elem in site_ids_te):        
-    # just make predictions
+    # If site is already known, just predict.
         yhat_te, s2_te, Z = ptk.normative.predict(cov_file_te, 
                                     alg=alg, 
                                     respfile=resp_file_te, 
@@ -109,7 +106,7 @@ def transfer_normative_models():
         sitenum_file_te = os.path.join(session_path, 'sitenum_te.pkl')  
         sitenum_file_ad = os.path.join(session_path, 'sitenum_ad.pkl')
         output_path = os.path.join(session_path, 'Transfer/') 
-        # adaptation covariates blr
+        # Adaptation covariates for BLR.
         if alg == "BLR":
             x_ad = create_design_matrix(df_ad[cols_cov], 
                                             site_ids = df_ad['site'],
@@ -117,19 +114,18 @@ def transfer_normative_models():
                                             basis = 'bspline', 
                                             xmin = xmin, 
                                             xmax = xmax)
-        # adaptation covariates hbr
+        # Site effects are special in HBR, so different covariates.
         elif alg == "HBR":
             x_ad = df_ad[cols_cov].to_numpy(dtype=float)
-        # save adaptation covariates
+        # Save adaptation covariates.
         with open(cov_file_ad, 'wb') as file:
             pickle.dump(pd.DataFrame(x_ad), file)
-        # save adaptation response variables, prevent error by only selecting columns that exist in df_ad
+        # Save adaptation response variables, prevent error by only selecting columns that exist in df_ad.
         y_ad = df_ad[df_ad.columns.intersection(set(idps))].to_numpy(dtype=float)
-        #y_ad = df_ad[idps].to_numpy(dtype=float)
         with open(resp_file_ad, 'wb') as file:
             pickle.dump(pd.DataFrame(y_ad), file)
 
-        # test and adaptation batch effects
+        # Test and adaptation batch effects.
         site_num_ad = df_ad['sitenum']
         site_num_te = df_te['sitenum']
         with open(sitenum_file_ad, 'wb') as file:
@@ -140,27 +136,25 @@ def transfer_normative_models():
         outputsuffix = '_transfer'
         inputsuffix = 'fit'
 
-        # parallelization, make sure batch is not 0 or smaller
+        # Set computation parameters.
         batch_size = int(testing_sample**(1/3)) if int(testing_sample**(1/3)) >= 1 else 1
         memory = '4gb'
         duration = '2:00:00'
         outputsuffix = '_transfer'
         python_path = '/home/preclineu/piebar/.conda/envs/remotepcn/bin/python'
-        ############################# Model & Data configs ############################
-
-        model = model_name#'HBR_HOM' # 'HBR_HET' 'HBR_HOM'
-        method = 'linear' # 'linear' 'polynomial' 'bspline'
+        
+        # Model & Data configs
+        model = model_name
+        method = 'linear'
         random_intercept = 'True'
         random_slope = 'True'
         random_noise = 'True'
         inscaler = 'None' 
         outscaler = 'None'
 
-        ########################## Setting up the Paths and Model #####################
-
+        # Setting up the Paths and Model
         job_name = model + '_'  + method 
         log_dir = session_path + '/log/'
-        
         if not os.path.isdir(log_dir):
             os.mkdir(log_dir) 
         if not os.path.isdir(output_path):
@@ -169,14 +163,10 @@ def transfer_normative_models():
             hetero_noise = 'False'
         else:
             hetero_noise = 'True'
-        measure = data_type
-        # probably for estimation only, can be deleted?
-        # data_path = '/project_cephfs/3022017.02/projects/lifespan_hbr/Data/'
-        # with open(data_path + measure + '.pkl', 'rb') as file:
-        #     df = pickle.load(file)
         
-        count_jobsdone = "True" # create a file for each job completed, to count in await_jobs below
-       # prepare_model_inputs(session_path, df)
+        # Trigger management of computation jobs
+        count_jobsdone = "True" 
+
         ptk.normative_parallel.execute_nm(session_path, python_path, 
                 'Transfer_' + job_name, cov_file_ad, resp_file_ad, batch_size, memory, duration, func='transfer', 
                 alg=alg, binary=True, trbefile=sitenum_file_ad, 
@@ -188,7 +178,6 @@ def transfer_normative_models():
                 testcovfile_path=cov_file_te, testrespfile_path=resp_file_te,
                 tsbefile = sitenum_file_te, output_path=output_path,
                 model_path=model_path, log_path=log_dir,count_jobsdone=count_jobsdone)
-#
 
         complete = False
         while complete == False:
@@ -202,38 +191,17 @@ def transfer_normative_models():
                 break
             print("Start rerunning...")
             ptk.normative_parallel.rerun_nm(session_path, log_dir, memory, duration, binary=True)
-        # from package_and_send_dropbox import create_link
-        
 
-        # Sequential computing
-        #print(f'{df_te.shape=}, {y_te.shape=}, {site_num_te.shape=}, {df_ad.shape=}, {y_ad.shape=}, {site_num_ad.shape=}')
-        # yhat_te_transfer, s2_te_transfer, Z_transfer = ptk.normative.transfer(
-        #                             covfile = cov_file_ad,
-        #                             respfile= resp_file_ad,  # do we want to make test set/prediction mandatory?
-        #                             tsbefile = sitenum_file_te,
-        #                             trbefile = sitenum_file_ad,
-        #                             model_path = model_path,
-        #                             alg = alg,
-        #                             log_path=log_dir,
-        #                             binary=True,
-        #                             #can retrieve this from the model dir probably
-        #                             inputsuffix = inputsuffix, 
-        #                             output_path=output_path,
-        #                             testcov= cov_file_te,
-        #                             testresp = resp_file_te,
-        #                             outputsuffix=outputsuffix,
-        #                             savemodel=True)
-        from package_and_send_surfdrive import send_results
+        
         send_results(session_id, email_address)
 def await_jobs(session_path, log_dir):
-    import os, time, glob
+    import time, glob
     jobs_done = False
     max_time = 1200
     sleep_time = 20
     elapsed_time = 0
 
     batch_dir = glob.glob(session_path + 'batch_*')
-    # print(batch_dir)
     number_of_batches = len(batch_dir)
     while jobs_done == False:
         print(f'{number_of_batches=}, {jobs_done=}')
@@ -247,6 +215,5 @@ def await_jobs(session_path, log_dir):
         if elapsed_time > max_time:
             break
     print("All", done_count, " out of ", number_of_batches, " jobs done!")
-        #make sure to remove them in the loop
 
 transfer_normative_models()
