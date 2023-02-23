@@ -17,13 +17,13 @@ _**Disclaimer:** this application strives to comply with best practices in data 
 ---
 <br />
 __Core development team:__                                                                      
-[Pieter Barkema](https://twitter.com/pieterbarkema) (Main developer) (pieterwbarkema@gmail.com)  
+[Pieter Barkema](https://twitter.com/pieterbarkema) (Main Developer) (pieterwbarkema@gmail.com)  
 [Hurng-Chun Lee](https://www.linkedin.com/in/hurng-chun-lee-50b40219/) (ICT support, DCCN Technical Group)  
-[Saige Rutherford](https://www.beingsaige.com/) (Data engineer) 
-[Andre Marquand](https://www.radboudumc.nl/en/people/andre-marquand) (Project manager) (andre.marquand@donders.ru.nl) 
+[Saige Rutherford](https://www.beingsaige.com/) (Data Engineer) 
+[Andre Marquand](https://www.radboudumc.nl/en/people/andre-marquand) (Project Manager) (andre.marquand@donders.ru.nl) 
 <br />
 
 __Important contributors:__
-[Seyed Mostafa Kia](https://research.tilburguniversity.edu/en/persons/seyed-mostafa-kia) (Data scientist)
-[Hannah Savage](https://twitter.com/DrHannahSavage) (UX design, Data scientist)
-[Christian Beckmann](https://www.radboudumc.nl/personen/christian-beckmann) (Institutional support)
+[Seyed Mostafa Kia](https://research.tilburguniversity.edu/en/persons/seyed-mostafa-kia) (Data Scientist)
+[Hannah Savage](https://twitter.com/DrHannahSavage) (UX designer, Data Scientist)
+[Christian Beckmann](https://www.radboudumc.nl/en/people/christian-beckmann) (Institutional Support)
