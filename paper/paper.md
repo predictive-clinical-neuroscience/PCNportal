@@ -45,4 +45,5 @@ affiliations:
 
 date: 23rd February 2023
 bibliography: paper.bib
+acknowledgements: This research was supported by the Wellcome Trust under a Digital Innovator award (‘BRAINCHART,’ 215698/Z/19/Z)  and the European Research Council (ERC, grant ‘MENTALPRECISION’ 10100118).
 ---
