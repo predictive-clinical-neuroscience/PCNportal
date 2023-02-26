@@ -343,9 +343,11 @@ def input_checker(mandatory_columns, download_template, current_request, previou
         if test_data_matches < 1:
             input_validated = False
             return_message = "Your test data has no feature matches with the model's data template. "
+            return input_validated, return_message
         if adapt_data_matches < 1:
             input_validated = False
             return_message = return_message + "Your adaptation data has no feature matches with the model's data template. "
+            return input_validated, return_message
         input_validated = True
     return input_validated, return_message
 
