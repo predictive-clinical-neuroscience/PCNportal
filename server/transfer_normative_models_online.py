@@ -66,14 +66,19 @@ def transfer_normative_models():
     print(f'{idps=}')
     # Extract and save the response variables for the test set.
     # Only extract available columns.
+    
+    # TO-DO: only for bug fixing!!
+    idps = idps
+    
     y_te = df_te[df_te.columns.intersection(set(idps))].to_numpy(dtype=float)
     resp_file_te = os.path.join(session_path, 'resp_te.pkl')
     with open(resp_file_te, 'wb') as file:
         pickle.dump(pd.DataFrame(y_te), file)
 
     import pandas as pd 
-    cols_cov = ['age', 'sex']
+    #cols_cov = ['age', 'sex']
     if alg == "BLR":
+        cols_cov = ['age', 'sex']
         from pcntoolkit.util.utils import create_design_matrix
         # limits for cubic B-spline basis 
         xmin = -5 
@@ -88,6 +93,7 @@ def transfer_normative_models():
                                         xmin = xmin, 
                                         xmax = xmax)
     elif alg == "HBR":
+        cols_cov = ['age']
         # Test covariates HBR
         x_te = df_te[cols_cov].to_numpy(dtype=float)
     cov_file_te = os.path.join(session_path, 'cov_bspline_te.pkl')
@@ -126,8 +132,12 @@ def transfer_normative_models():
             pickle.dump(pd.DataFrame(y_ad), file)
 
         # Test and adaptation batch effects.
-        site_num_ad = df_ad['sitenum']
-        site_num_te = df_te['sitenum']
+        if alg == "HBR":
+                site_num_ad = df_ad[['sitenum', 'sex']]
+                site_num_te = df_te[['sitenum', 'sex']]
+        if alg == "BLR":
+                site_num_ad = df_ad['sitenum']
+                site_num_te = df_te['sitenum']
         with open(sitenum_file_ad, 'wb') as file:
             pickle.dump(site_num_ad, file)
         with open(sitenum_file_te, 'wb') as file:
@@ -139,7 +149,7 @@ def transfer_normative_models():
         # Set computation parameters.
         batch_size = int(testing_sample**(1/3)) if int(testing_sample**(1/3)) >= 1 else 1
         memory = '4gb'
-        duration = '2:00:00'
+        duration = '3:00:00'
         outputsuffix = '_transfer'
         python_path = '/home/preclineu/piebar/.conda/envs/remotepcn/bin/python'
         
@@ -181,15 +191,27 @@ def transfer_normative_models():
 
         complete = False
         while complete == False:
+            from pathlib import Path
             # dependjob goes here
             await_jobs(session_path, log_dir)
+            Path('/project_cephfs/3022051.01/awaitdone.txt').touch()
             print("Start collecting...")
+            myvars = [session_path, 'Transfer_' + job_name, 'transfer', str(batch_size), outputsuffix]
+            with open('/project_cephfs/3022051.01/sample.txt', 'w') as f:
+                for var in myvars:
+                    f.write(var+ '\n')
             complete = ptk.normative_parallel.collect_nm(session_path, 'Transfer_' + job_name,
                                    func='transfer', collect=True, binary=True, 
                                    batch_size=batch_size, outputsuffix=outputsuffix)
+            #mypath = '/project_cephfs/3022051.01/' + str(complete)
+            #Path(mypath.touch())
             if complete == True:
                 break
             print("Start rerunning...")
+            
+#python /project_cephfs/3022051.01/test_scripts/server/transfer_normative_models_online.py "/project_cephfs/3022051.01/" "HBR_lifespan_36K_79sites" "ThickAvg" "60c6c3a7c11d4edb8bf80fea886865fc" "HBR" "pieterwbarkema@gmail.com"
+#/project_cephfs/3022051.01/sessions/60c6c3a7c11d4edb8bf80fea886865fc/            
+            Path('/project_cephfs/3022051.01/rerun.txt').touch()
             ptk.normative_parallel.rerun_nm(session_path, log_dir, memory, duration, binary=True)
 
         
@@ -197,7 +219,7 @@ def transfer_normative_models():
 def await_jobs(session_path, log_dir):
     import time, glob
     jobs_done = False
-    max_time = 1200
+    max_time = 12000
     sleep_time = 20
     elapsed_time = 0
 
