@@ -96,7 +96,7 @@ def transfer_normative_models():
         pickle.dump(pd.DataFrame(x_te), file)
 
     if all(elem in site_ids_tr for elem in site_ids_te):        
-    # If site is already known, just predict.
+    # If the model has already been trained on all presented sites, just predict.
         yhat_te, s2_te, Z = ptk.normative.predict(cov_file_te, 
                                     alg=alg, 
                                     respfile=resp_file_te, 
@@ -107,7 +107,7 @@ def transfer_normative_models():
         sitenum_file_te = os.path.join(session_path, 'sitenum_te.pkl')  
         sitenum_file_ad = os.path.join(session_path, 'sitenum_ad.pkl')
         output_path = os.path.join(session_path, 'Transfer/') 
-        # Adaptation covariates for BLR.
+        # Covariates should be in design matrix for BLR, but not HBR.
         if alg == "BLR":
             x_ad = create_design_matrix(df_ad[cols_cov], 
                                             site_ids = df_ad['site'],
@@ -149,28 +149,26 @@ def transfer_normative_models():
         python_path = '/home/preclineu/piebar/.conda/envs/remotepcn/bin/python'
 
         # Model & Data configs
-        model = model_name
         method = 'linear' # 'linear' 'polynomial' 'bspline'
         random_intercept = 'True'
         random_slope = 'True'
         random_noise = 'True'
         inscaler = 'None' 
         outscaler = 'None'
-
+        if model_name in ['HBR_HOM']:    
+            hetero_noise = 'False'
+        else:
+            hetero_noise = 'True'
         # Setting up the Paths and Model
-        job_name = model + '_'  + method 
+        job_name = model_name + '_'  + method 
         log_dir = session_path + '/log/'
         if not os.path.isdir(log_dir):
             os.mkdir(log_dir) 
         if not os.path.isdir(output_path):
             os.mkdir(output_path) 
-        if model in ['HBR_HOM']:    
-            hetero_noise = 'False'
-        else:
-            hetero_noise = 'True'
         
-        # Trigger management of computation jobs
-        count_jobsdone = "True" 
+        # Signifies when jobs are done, for automatic management of computation jobs.
+        count_jobsdone = "True"
 
         ptk.normative_parallel.execute_nm(session_path, python_path, 
                 'Transfer_' + job_name, cov_file_ad, resp_file_ad, batch_size, memory, duration, func='transfer', 
@@ -186,23 +184,21 @@ def transfer_normative_models():
 
         complete = False
         while complete == False:
-            from pathlib import Path
-            # dependjob goes here
             await_jobs(session_path, log_dir)
+            
             print("Start collecting...")
-
             complete = ptk.normative_parallel.collect_nm(session_path, 'Transfer_' + job_name,
                                    func='transfer', collect=True, binary=True, 
                                    batch_size=batch_size, outputsuffix=outputsuffix)
 
             if complete == True:
                 break
-            print("Start rerunning...")
             
+            print("Start rerunning...")
             ptk.normative_parallel.rerun_nm(session_path, log_dir, memory, duration, binary=True)
 
-        
         send_results(session_id, email_address)
+        
 def await_jobs(session_path, log_dir):
     import time, glob
     jobs_done = False

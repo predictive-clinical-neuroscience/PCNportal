@@ -76,15 +76,16 @@ def upload_results(from_path, session_id):
 def zipper(dirName, zipFileName):
     from zipfile import ZipFile
     import os
-    from os.path import basename
     os.chdir(dirName)
     with ZipFile(zipFileName, 'w') as zipObj:
-        # Iterate over all the files in directory
+        # Iterate over all the files in session directory
         for filename in os.listdir(dirName):
+            # Only share and zip up the relevant files.
             if filter_results(filename):
                 zipObj.write(filename, filename)
 
 def filter_results(filename):
+    # Filter what error measures and results should be shared.
     measures = ["Z_", "SMSE_", "RMSE_", "Rho_", "pRho_", "MSLL_", "EXPV_"]
     for measure_type in measures:
         if measure_type in filename:
