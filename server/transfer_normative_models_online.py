@@ -63,20 +63,14 @@ def transfer_normative_models():
         idps = f.read().splitlines()
     testing_sample = len(df_te.columns.intersection(set(idps)))
 
-    print(f'{idps=}')
     # Extract and save the response variables for the test set.
-    # Only extract available columns.
-    
-    # TO-DO: only for bug fixing!!
-    idps = idps
-    
+    # Only extract available columns. 
     y_te = df_te[df_te.columns.intersection(set(idps))].to_numpy(dtype=float)
     resp_file_te = os.path.join(session_path, 'resp_te.pkl')
     with open(resp_file_te, 'wb') as file:
         pickle.dump(pd.DataFrame(y_te), file)
 
     import pandas as pd 
-    #cols_cov = ['age', 'sex']
     if alg == "BLR":
         cols_cov = ['age', 'sex']
         from pcntoolkit.util.utils import create_design_matrix
@@ -92,9 +86,10 @@ def transfer_normative_models():
                                         basis = 'bspline', 
                                         xmin = xmin, 
                                         xmax = xmax)
+    # Gender is a site effect in HBR, so no covariate.
     elif alg == "HBR":
         cols_cov = ['age']
-        # Test covariates HBR
+        # Test covariates HBR.
         x_te = df_te[cols_cov].to_numpy(dtype=float)
     cov_file_te = os.path.join(session_path, 'cov_bspline_te.pkl')
     with open(cov_file_te, 'wb') as file:
@@ -120,7 +115,7 @@ def transfer_normative_models():
                                             basis = 'bspline', 
                                             xmin = xmin, 
                                             xmax = xmax)
-        # Site effects are special in HBR, so different covariates.
+        
         elif alg == "HBR":
             x_ad = df_ad[cols_cov].to_numpy(dtype=float)
         # Save adaptation covariates.
@@ -194,24 +189,16 @@ def transfer_normative_models():
             from pathlib import Path
             # dependjob goes here
             await_jobs(session_path, log_dir)
-            Path('/project_cephfs/3022051.01/awaitdone.txt').touch()
             print("Start collecting...")
-            myvars = [session_path, 'Transfer_' + job_name, 'transfer', str(batch_size), outputsuffix]
-            with open('/project_cephfs/3022051.01/sample.txt', 'w') as f:
-                for var in myvars:
-                    f.write(var+ '\n')
+
             complete = ptk.normative_parallel.collect_nm(session_path, 'Transfer_' + job_name,
                                    func='transfer', collect=True, binary=True, 
                                    batch_size=batch_size, outputsuffix=outputsuffix)
-            #mypath = '/project_cephfs/3022051.01/' + str(complete)
-            #Path(mypath.touch())
+
             if complete == True:
                 break
             print("Start rerunning...")
             
-#python /project_cephfs/3022051.01/test_scripts/server/transfer_normative_models_online.py "/project_cephfs/3022051.01/" "HBR_lifespan_36K_79sites" "ThickAvg" "60c6c3a7c11d4edb8bf80fea886865fc" "HBR" "pieterwbarkema@gmail.com"
-#/project_cephfs/3022051.01/sessions/60c6c3a7c11d4edb8bf80fea886865fc/            
-            Path('/project_cephfs/3022051.01/rerun.txt').touch()
             ptk.normative_parallel.rerun_nm(session_path, log_dir, memory, duration, binary=True)
 
         
