@@ -1,6 +1,7 @@
 #! /bin/bash
+# @author: Pieter Barkema
 # A bash script executed on the server side to start modelling.
-
+#
 # Variables:
 # 1 = path to the project dir
 # 2 = model name

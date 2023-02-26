@@ -146,16 +146,16 @@ def transfer_normative_models():
         outputsuffix = '_transfer'
         inputsuffix = 'fit'
 
-        # Set computation parameters.
+        # Batch size != amount of batches
         batch_size = int(testing_sample**(1/3)) if int(testing_sample**(1/3)) >= 1 else 1
         memory = '4gb'
         duration = '3:00:00'
         outputsuffix = '_transfer'
         python_path = '/home/preclineu/piebar/.conda/envs/remotepcn/bin/python'
-        
+
         # Model & Data configs
         model = model_name
-        method = 'linear'
+        method = 'linear' # 'linear' 'polynomial' 'bspline'
         random_intercept = 'True'
         random_slope = 'True'
         random_noise = 'True'

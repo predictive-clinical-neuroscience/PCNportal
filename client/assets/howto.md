@@ -32,7 +32,7 @@ The resulting z-scores represent the deviations per feature per subject. Follow-
 Normative modelling is also a very visual concept, but visualization is not directly supported on the website yet. You can use the code at the bottom of this Jupyter [notebook](https://github.com/predictive-clinical-neuroscience/braincharts/blob/master/scripts/apply_normative_models_ct.ipynb) to plot your own results.
 <br />
 ---
-<br />
+
 ### Demo  
 
 Follow these instructions if you want to give the website a test run.
