@@ -10,8 +10,6 @@
        context: ./
      container_name: PCNportal
      hostname: PCNportal
-     env_file:
-        - variables.env
  networks:
    network:
      driver: bridge
