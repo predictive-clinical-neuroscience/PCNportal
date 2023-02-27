@@ -1,8 +1,7 @@
 #!/bin/bash
 
-mkdir -p ~/.ssh
-
 # Disabled for review testing.
+#mkdir -p ~/.ssh
 #if [ ! -f ~/.ssh/id_rsa ]; then
 # Generate a new SSH key, that the user should copy to the submission host of qsub.
 #  ssh-keygen -t rsa -N "" -C "PCNportal" -f ~/.ssh/id_rsa
