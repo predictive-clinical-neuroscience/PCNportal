@@ -9,15 +9,36 @@ Then, it retrieves a download link for the results, and
 emails the link to the user with the provided email address
 and by connecting to the Gmail API.
 
+
 """
 
 from webdav3.client import Client
 
 def send_results(session_id, email_address):
+    """
+    
+    Main function to upload and send results.
+    It sends a download link to the user containing the 
+    model evaluation scores and z-scores of the current session.
+    
+    Parameters
+    ----------
+    session_id : string
+        Unique session ID corresponding to the client side ID.
+    email_address : string
+        User email address to send modelling results to.
+
+    Returns
+    -------
+    No values are returned. Instead, the results are uploaded, and an email is 
+    sent to the user, containing a SURFdrive link to download their results.
+    
+
+    """
+    
     import os
     session_path = "/project_cephfs/3022051.01/sessions/" + session_id
-    from_path = os.path.join("/project_cephfs/3022051.01/sessions/", session_id, "results.zip")
-    session_path = os.path.join("/project_cephfs/3022051.01", "sessions", session_id)
+    from_path = os.path.join(session_path, "results.zip")
     zip_name = "results.zip"
 
     # Zip up the results.
@@ -30,6 +51,22 @@ def send_results(session_id, email_address):
     email_results(session_id, email_address)
 
 def email_results(session_id, email_receiver):
+    """
+    
+    Emails the user with a SURFdrive link to download their results.
+
+    Parameters
+    ----------
+    session_id : string
+        Unique session ID corresponding to the client side ID.
+    email_receiver : User email address to send the email with results to.
+        
+
+    Returns
+    -------
+    None. Sends an email.
+
+    """
     import smtplib
     import ssl
     import config
@@ -59,6 +96,22 @@ def email_results(session_id, email_receiver):
         smtp.sendmail(email_sender, email_receiver, em.as_string())
 
 def upload_results(from_path, session_id):
+    """
+    
+    Uploads the zipped up results to SURFdrive, using its API.
+
+    Parameters
+    ----------
+    from_path : string
+        The path to the directory that needs to be uploaded.
+    session_id : string
+        Unique session ID corresponding to the client side ID.
+
+    Returns
+    -------
+    None. Creates files on remote SURFdrive server.
+
+    """
     import config
     options = {
     'webdav_hostname': 'https://surfdrive.surf.nl/files/remote.php/nonshib-webdav',
@@ -74,6 +127,23 @@ def upload_results(from_path, session_id):
     client.upload_sync(remote_path = to_path, local_path = from_path)
 
 def zipper(dirName, zipFileName):
+    """
+    
+    Creates a zipped directory from the results directory.
+
+    Parameters
+    ----------
+    dirName : STRING
+        Path to the directory that needs to be zipped.
+    zipFileName : STRING
+        Name of the created .zip file.
+
+    Returns
+    -------
+    None. Creates a zipped up directory.
+
+    """
+    
     from zipfile import ZipFile
     import os
     os.chdir(dirName)
