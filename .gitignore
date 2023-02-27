@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-.config.py
-=======
-=======
->>>>>>> 16ea06ee544bd9fb37e3e0629bc0d16bebaa86f6
+/server/config.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -150,7 +145,3 @@ client/.ssh/*
 server/config.py
 .git.bfg-report/*
 bfg-1.14.0.jar
-<<<<<<< HEAD
->>>>>>> 16ea06ee544bd9fb37e3e0629bc0d16bebaa86f6
-=======
->>>>>>> 16ea06ee544bd9fb37e3e0629bc0d16bebaa86f6
