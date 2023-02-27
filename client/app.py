@@ -72,7 +72,7 @@ app.layout = html.Div([
         dcc.Tab(label='Model information', children=[
             html.Br(),
             html.Div(
-                dcc.Markdown(id="modelinfo-readme", link_target="_blank",), style={'margin':'auto','width':"80%"},
+                dcc.Markdown(id="modelinfo-readme", link_target="_blank", dangerously_allow_html=True), style={'margin':'auto','width':"80%"},
             )
         ]),
 
