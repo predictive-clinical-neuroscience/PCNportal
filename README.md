@@ -53,7 +53,7 @@ Example:
 <img width="166" alt="image" src="https://user-images.githubusercontent.com/39303377/220667045-60502ea0-308c-4b5a-9a07-c74a979f518f.png">
 
 'Models' contains all models with naming convention NM\_0\_\{x\}\_fit.pkl where _x_ is the model number corresponding to the order of idp ids.
-The features that were used in training should be saved in 'idp_ids.txt', the names of data collection sites in 'site_ids.txt', the names of mandatory columns (covariates and site effects) in 'mandatory_columns.txt'. All strings should be separated with 'return'. Any information about the model and how its trained (including hyperparameters) in the 'README.md'.
+The features that were used in training should be saved in 'idp_ids.txt', the names of data collection sites in 'site_ids.txt', the names of mandatory columns (covariates and site effects) in 'mandatory_columns.txt'. All strings should be separated with return ('\n'). Any information about the model and how its trained (including hyperparameters) should be provided in the 'README.md', along with a data template link denoted by \[Download\]\(link\).
 
 Models not trained with PCNtoolkit can be accepted when a Python script is provided for transfer learning. Please contact us on Gitter to discuss such options.
 
