@@ -30,12 +30,14 @@ To locally deploy the GUI without modelling functionality, please follow these i
   git clone https://github.com/predictive-clinical-neuroscience/PCNportal.git
   ~~~
 * Then go to /PCNportal/client/ subdirectory of your local repository clone.
-* Use 
-~~~ 'docker-compose build' ~~~
-to build the container.
-* Then use 
-~~~ docker-compose up ~~~ 
-to run the application.
+* First build your image with:
+~~~ 
+docker-compose build
+~~~
+* Then, to run the application use: 
+~~~
+docker-compose up
+~~~ 
 * Access the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/).
 * Please make sure entrypoint.sh has LF line endings. CRLF Windows line endings will prevent a succesful run.
 
