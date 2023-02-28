@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Disabled for review testing.
 #mkdir -p ~/.ssh
