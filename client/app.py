@@ -321,7 +321,10 @@ def input_checker(mandatory_columns, download_template, current_request, previou
         import pandas as pd
         test_data_columns = parse_contents(test_contents, test_filename).columns
         adapt_data_columns = parse_contents(adapt_contents, adapt_filename).columns
-        goal_columns = pd.read_csv(download_template)
+        try:
+            goal_columns = pd.read_csv(download_template)
+        except FileNotFoundError:
+            return False, "No model template was found."
         
         # Evaluate only number of matching non-mandatory columns, i.e. idps.
         goal_columns = goal_columns.drop(goal_columns.filter(regex="Unname"),axis=1)
