@@ -38,7 +38,7 @@ To locally deploy the GUI without modelling functionality, please follow these i
   ~~~
   docker-compose up
   ~~~ 
-* Access the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/).
+* Access the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/). Another port can be specified in docker-compose.override.yml.
 * Please make sure entrypoint.sh has LF line endings. CRLF Windows line endings will prevent a succesful run.
 
 The latest version of the image is publically hosted at [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general).
