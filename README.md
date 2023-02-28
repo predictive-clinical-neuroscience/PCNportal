@@ -31,13 +31,13 @@ To locally deploy the GUI without modelling functionality, please follow these i
   ~~~
 * Then go to /PCNportal/client/ subdirectory of your local repository clone.
 * First build your image with:
-~~~ 
-docker-compose build
-~~~
+  ~~~ 
+  docker-compose build
+  ~~~
 * Then, to run the application use: 
-~~~
-docker-compose up
-~~~ 
+  ~~~
+  docker-compose up
+  ~~~ 
 * Access the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/).
 * Please make sure entrypoint.sh has LF line endings. CRLF Windows line endings will prevent a succesful run.
 
