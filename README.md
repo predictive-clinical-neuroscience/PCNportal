@@ -33,10 +33,9 @@ To locally deploy the GUI without modelling functionality, please follow these i
 * Use 'docker-compose build' to build the container.
 * Use 'docker-compose up' to run the application.
 * Access the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/).
+* Please make sure entrypoint.sh has LF line endings. CRLF Windows line endings will prevent a succesful run.
 
-Please note: the process will fail when entrypoint.sh has CRLF line endings, and should have LF line endings instead.
-
-The latest version of the image can be found at our [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general).
+The latest version of the image is publically hosted at [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general).
 
 During this process, the dependencies for PCNportal will be installed as provided in [requirements.txt](https://github.com/predictive-clinical-neuroscience/PCNportal/blob/main/client/requirements.txt).
 
