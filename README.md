@@ -17,7 +17,7 @@ The website:
 - dynamically updates available models and model-specific information,
 - checks data for errors and provides feedback,
 - shares results through a public server and an automated email service,
-- cleans up data older than thirty days to comply with privacy guidelines,
+- hosts data on secure Institute servers and cleans up data older than thirty days to comply with privacy guidelines,
 - automatically runs, checks and manages parallelized computation jobs.
 
 ## Testing & Installation
