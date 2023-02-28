@@ -29,7 +29,7 @@ To locally deploy the GUI without modelling functionality, please follow these i
   ~~~
   git clone https://github.com/predictive-clinical-neuroscience/PCNportal.git
   ~~~
-* Then go to /PCNportal/client/ subdirectory of your local repository clone.
+* Then go to the PCNportal/client/ subdirectory of your local repository clone.
 * First build your image with:
   ~~~ 
   docker-compose build
