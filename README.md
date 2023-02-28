@@ -34,11 +34,11 @@ To locally deploy the GUI without modelling functionality, please follow these i
   ~~~ 
   dos2unix entrypoint.sh
   ~~~
-* First build your image with:
+* Build your image with:
   ~~~ 
   docker-compose build
   ~~~
-* Then, to run the application use: 
+* Then, run the application with: 
   ~~~
   docker-compose up
   ~~~ 
