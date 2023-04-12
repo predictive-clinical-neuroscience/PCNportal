@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7708367.svg)](https://doi.org/10.5281/zenodo.7708367)
+
 [PCNportal](https://pcnportal.dccn.nl/) is a website that facilitates access to modelling with finetuned normative models for neuroimaging analysis that are pre-trained and applied with the Python package [PCNtoolkit](https://pcntoolkit.readthedocs.io/en/latest/). Normative modelling is increasingly in demand to analyze the differences between individual brains in neuroimaging and neuropsychiatry.
 
 This GitHub contains the client side and server side code for the PCNportal project. The client side contains code to facilitate the GUI and website service, while the server side code contains functionality to model with PCNtoolkit on a remote server and share results.
@@ -17,24 +19,35 @@ The website:
 - dynamically updates available models and model-specific information,
 - checks data for errors and provides feedback,
 - shares results through a public server and an automated email service,
-- cleans up data older than thirty days to comply with privacy guidelines,
+- hosts data on secure Institute servers and cleans up data older than thirty days to comply with privacy guidelines,
 - automatically runs, checks and manages parallelized computation jobs.
 
 ## Testing & Installation
 
-Testing the website's functionality can be done through modelling with demo data, as can be found on the website under 'How to Model' (but also available in the Wiki's client side page).
+Testing the website's functionality can be done through modelling with demo data, as can be found on the website under 'How to Model' (but also available in the Wiki's client side page). More demo data can be found in [PCNportal/client/docs](https://github.com/predictive-clinical-neuroscience/PCNportal/tree/main/client/docs).
 
 To locally deploy the GUI without modelling functionality, please follow these instructions. You will first need to install [Docker](https://docs.docker.com/get-docker/), and then:
 * Open up cmd and clone the GitHub repository with 
   ~~~
   git clone https://github.com/predictive-clinical-neuroscience/PCNportal.git
   ~~~
-* Then go to /PCNportal/client/ subdirectory of your local repository clone.
-* Use 'docker-compose build' to build the container.
-* Use 'docker-compose up' to run the application.
-* Access the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/).
+* Then go to the PCNportal/client subdirectory of your local repository clone.
+* Make sure entrypoint.sh has LF line endings. For example, by running:
+  ~~~ 
+  dos2unix entrypoint.sh
+  ~~~
+* Build your image with:
+  ~~~ 
+  docker-compose build
+  ~~~
+* Then, run the application with: 
+  ~~~
+  docker-compose up
+  ~~~ 
+* Access the GUI at localhost:5000 (e.g.: http://127.0.0.1:5000/). Another port can be specified in docker-compose.override.yml.
+* Please make sure entrypoint.sh has LF line endings. CRLF Windows line endings will prevent a succesful run.
 
-The latest version of the image can be found at our [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general).
+The latest version of the image is publically hosted at [DockerHub](https://hub.docker.com/repository/docker/ifdevdocker/pcnonlinedev/general).
 
 During this process, the dependencies for PCNportal will be installed as provided in [requirements.txt](https://github.com/predictive-clinical-neuroscience/PCNportal/blob/main/client/requirements.txt).
 
