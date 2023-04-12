@@ -146,3 +146,4 @@ server/config.py
 .git.bfg-report/*
 bfg-1.14.0.jar
 client/variables.env
+client/docker-compose.yaml
