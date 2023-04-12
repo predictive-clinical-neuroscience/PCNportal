@@ -217,7 +217,7 @@ app.layout = html.Div([
 
     ], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'}),
     html.Div(
-    style={'position': 'fixed', 'left': '68.5%', 'top': '-11%', 'height':'40%', 'width':'23.5%'}, #'padding':'0%', 'left': '99%', 'top': '97%',
+    style={'position': 'fixed', 'left': '70%', 'top': '-11%', 'height':'260px', 'width':'260px'}, #'padding':'0%', 'left': '99%', 'top': '97%',
     children=[
         # Workaround: readmes didn't load. Let image loading trigger the readme loading. 
         html.Img(id="load-readme-trigger",src='assets/merged_images_update.png', alt='image', style={'height':'90%', 'width':'90%'}), #'padding': '0%', , 'height':'700%', 'width':'700%'
