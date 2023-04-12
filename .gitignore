@@ -147,3 +147,4 @@ server/config.py
 bfg-1.14.0.jar
 client/variables.env
 client/docker-compose.yaml
+client/assets/PostHog.js
