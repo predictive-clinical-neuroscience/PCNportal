@@ -178,7 +178,8 @@ def transfer_normative_models():
         memory = '4gb'
         duration = '3:00:00'
         outputsuffix = '_transfer'
-        python_path = '/home/preclineu/piebar/.conda/envs/remotepcn/bin/python'
+        python_path = python_path = '/project_cephfs/3022051.01/pcnportalconda/bin/python'
+#'/home/preclineu/piebar/.conda/envs/remotepcn/bin/python'
 
         # Model & Data configs.
         method = 'linear' # 'linear' 'polynomial' 'bspline'

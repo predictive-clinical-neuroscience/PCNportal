@@ -13,8 +13,9 @@
 # Activate our virtual environment
 cd /project_cephfs/3022051.01
 module load "anaconda3/2021.05"
-source activate remotepcn
+source activate /project_cephfs/3022051.01/pcnportalconda
 
 # Start modelling
 echo "Bash script activated..."
 python /project_cephfs/3022051.01/test_scripts/server/transfer_normative_models_online.py $1 $2 $3 $4 $5 $6
+
