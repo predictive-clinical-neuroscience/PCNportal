@@ -75,7 +75,7 @@ Models not trained with PCNtoolkit can be accepted when a Python script is provi
 
 Models will be tested by experts before being hosted on the website.
 
-The full instructions for contributing models can be found [here](https://docs.google.com/document/d/1PxYHUmn4XjvPJXtqMNHkkKLAPrzsYonlNxdtxMxlXoA/edit)https://docs.google.com/document/d/1PxYHUmn4XjvPJXtqMNHkkKLAPrzsYonlNxdtxMxlXoA/edit).
+The full instructions for contributing models can be found [here](https://docs.google.com/document/d/1PxYHUmn4XjvPJXtqMNHkkKLAPrzsYonlNxdtxMxlXoA/edit?usp=sharing).
 
 ## License
 
