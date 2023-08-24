@@ -71,6 +71,7 @@ def transfer_normative_models():
 
     # Site enumeration.
     sites = np.unique(df_te['site'])
+
     df_te['sitenum'] = np.nan
     for i, s in enumerate(sites):
         df_te['sitenum'].loc[df_te['site'] == s] = int(i)
@@ -94,10 +95,13 @@ def transfer_normative_models():
     resp_file_te = os.path.join(session_path, 'resp_te.pkl')
     with open(resp_file_te, 'wb') as file:
         pickle.dump(pd.DataFrame(y_te), file)
-
+    
+    
     # BLR and HBR have slightly different data input.
+    covs_file = open(os.path.join(model_info_path, "covariates.txt"), "r")
+    cols_cov = covs_file.read().splitlines()
     if alg == "BLR":
-        cols_cov = ['age', 'sex']
+        #cols_cov = ['age', 'sex']
         # Limits for cubic B-spline basis .
         xmin = -5 
         xmax = 110
@@ -112,61 +116,71 @@ def transfer_normative_models():
                                         xmax = xmax)
     # Sex is a site effect in HBR, so no covariate.
     elif alg == "HBR":
-        cols_cov = ['age']
+        #cols_cov = ['age']
         # Prepare test covariates HBR.
         x_te = df_te[cols_cov].to_numpy(dtype=float)
     
     cov_file_te = os.path.join(session_path, 'cov_bspline_te.pkl')
     with open(cov_file_te, 'wb') as file:
         pickle.dump(pd.DataFrame(x_te), file)
+    
+    cov_file_ad = os.path.join(session_path, 'cov_bspline_ad.pkl')
+    resp_file_ad = os.path.join(session_path, 'resp_ad.pkl') 
+    sitenum_file_te = os.path.join(session_path, 'sitenum_te.pkl')  
+    sitenum_file_ad = os.path.join(session_path, 'sitenum_ad.pkl')
+    output_path = os.path.join(session_path, 'Transfer/') 
+    # Adaptation covariates for BLR.
+    print("colscov:", cols_cov)
+    if alg == "BLR":
+        x_ad = create_design_matrix(df_ad[cols_cov], 
+                                        site_ids = df_ad['site'],
+                                        all_sites = site_ids_tr,
+                                        basis = 'bspline', 
+                                        xmin = xmin, 
+                                        xmax = xmax)
+    
+    # Adaptation covariates for HBR.
+    elif alg == "HBR":
+        x_ad = df_ad[cols_cov].to_numpy(dtype=float)
         
-    # If the model has seen all presented sites, transfer is not necessary.
-    if all(elem in site_ids_tr for elem in site_ids_te):        
-        yhat_te, s2_te, Z = ptk.normative.predict(cov_file_te, 
-                                    alg=alg, 
-                                    respfile=resp_file_te, 
-                                    model_path=os.path.join(root_dir,'Models'))
-    else:        
-        cov_file_ad = os.path.join(session_path, 'cov_bspline_ad.pkl')
-        resp_file_ad = os.path.join(session_path, 'resp_ad.pkl') 
-        sitenum_file_te = os.path.join(session_path, 'sitenum_te.pkl')  
-        sitenum_file_ad = os.path.join(session_path, 'sitenum_ad.pkl')
-        output_path = os.path.join(session_path, 'Transfer/') 
-        # Adaptation covariates for BLR.
-        if alg == "BLR":
-            x_ad = create_design_matrix(df_ad[cols_cov], 
-                                            site_ids = df_ad['site'],
-                                            all_sites = site_ids_tr,
-                                            basis = 'bspline', 
-                                            xmin = xmin, 
-                                            xmax = xmax)
+    # Save adaptation covariates.
+    with open(cov_file_ad, 'wb') as file:
+        pickle.dump(pd.DataFrame(x_ad), file)
         
-        # Adaptation covariates for HBR.
-        elif alg == "HBR":
-            x_ad = df_ad[cols_cov].to_numpy(dtype=float)
-            
-        # Save adaptation covariates.
-        with open(cov_file_ad, 'wb') as file:
-            pickle.dump(pd.DataFrame(x_ad), file)
-            
-        # Save adaptation brain features. 
-        # Only select presented features that model has been trained on.
-        y_ad = df_ad[df_ad.columns.intersection(set(idps))].to_numpy(dtype=float)
-        with open(resp_file_ad, 'wb') as file:
-            pickle.dump(pd.DataFrame(y_ad), file)
+    # Save adaptation brain features. 
+    # Only select presented features that model has been trained on.
+    y_ad = df_ad[df_ad.columns.intersection(set(idps))].to_numpy(dtype=float)
+    with open(resp_file_ad, 'wb') as file:
+        pickle.dump(pd.DataFrame(y_ad), file)
 
-        # Test and adaptation batch effects.
-        if alg == "HBR":
-                site_num_ad = df_ad[['sitenum', 'sex']]
-                site_num_te = df_te[['sitenum', 'sex']]
-        if alg == "BLR":
-                site_num_ad = df_ad['sitenum']
-                site_num_te = df_te['sitenum']
-        
-        with open(sitenum_file_ad, 'wb') as file:
-            pickle.dump(site_num_ad, file)
-        with open(sitenum_file_te, 'wb') as file:
-            pickle.dump(site_num_te, file)
+    # Test and adaptation batch effects.
+    batch_effects_file = open(os.path.join(model_info_path, "batch_effects.txt"), "r")
+    cols_batch_effects = batch_effects_file.read().splitlines()
+    cols_batch_effects = ['sitenum' if x=='site' else x for x in cols_batch_effects]
+    if len(cols_batch_effects) == 1:
+        cols_batch_effects = cols_batch_effects[0]
+    print("colsbe:", cols_batch_effects)
+    site_num_te = df_te[cols_batch_effects]
+    site_num_ad = df_ad[cols_batch_effects]
+    
+    with open(sitenum_file_ad, 'wb') as file:
+        pickle.dump(site_num_ad, file)
+    with open(sitenum_file_te, 'wb') as file:
+        pickle.dump(site_num_te, file)
+    
+    
+    # If the model has seen all presented sites, transfer is not necessary.
+    if all(elem in site_ids_tr for elem in site_ids_te):
+     
+        yhat_te, s2_te, Z = ptk.normative.predict(cov_file_te,
+                                inputsuffix = "fit",
+                                alg=alg, 
+                                respfile=resp_file_te, 
+                                model_path=model_path,
+                                tsbefile = sitenum_file_te,
+                                trbefile=sitenum_file_ad) #os.path.join(root_dir,'Models'))
+    else:        
+
         
         # Prepare parameters for parallelized normative modelling.
         log_dir = os.path.join(session_path, 'logs/')
@@ -182,7 +196,7 @@ def transfer_normative_models():
 #'/home/preclineu/piebar/.conda/envs/remotepcn/bin/python'
 
         # Model & Data configs.
-        method = 'linear' # 'linear' 'polynomial' 'bspline'
+        method = 'linear'#'bspline' # 'linear' 'polynomial' 
         random_intercept = 'True'
         random_slope = 'True'
         random_noise = 'True'
@@ -235,8 +249,15 @@ def transfer_normative_models():
             print("Start rerunning...")
             ptk.normative_parallel.rerun_nm(session_path, log_dir, memory, duration, binary=True)
         
-        # Communicate results with Gmail and SURFdrive API.
-        send_results(session_id, email_address)
+    # Communicate results with Gmail and SURFdrive API.
+        for root, dirs, files in os.walk(log_dir):
+            for file in files:
+                if '.e' in file or '.o' in file:
+                    os.chmod(os.path.join(root, file), 0o660)
+  #      os.chmod(log_dir+"*.e*", 0o660)
+   #s     os.chmod(log_dir+"*.o*"
+   
+    send_results(session_id, email_address)
         
 def await_jobs(session_path, log_dir):
     """
