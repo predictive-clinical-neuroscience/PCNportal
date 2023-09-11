@@ -55,10 +55,12 @@ def transfer_normative_models():
     model_name= sys.argv[2]
     data_type = sys.argv[3]
     session_id = sys.argv[4]
+    # untested models or not
+    model_dir = sys.argv[5]
     alg = model_name.split("_")[0]
     email_address = sys.argv[6]
-    model_info_path = os.path.join(root_dir, "models", data_type, model_name)
-    model_path = os.path.join(root_dir, "models", data_type, model_name, "Models")
+    model_info_path = os.path.join(root_dir, model_dir, data_type, model_name)
+    model_path = os.path.join(root_dir, model_dir, data_type, model_name, "Models")
     
     # Create session directory, and read in data.
     session_path = os.path.join(root_dir, "sessions", session_id) +"/"
