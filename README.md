@@ -75,6 +75,8 @@ Models not trained with PCNtoolkit can be accepted when a Python script is provi
 
 Models will be tested by experts before being hosted on the website.
 
+The full instructions for contributing models can be found [here](https://docs.google.com/document/d/1PxYHUmn4XjvPJXtqMNHkkKLAPrzsYonlNxdtxMxlXoA/edit?usp=sharing).
+
 ## License
 
 PCNportal is licensed under the GNU General Public License v3.0.

@@ -145,14 +145,20 @@ def zipper(dirName, zipFileName):
     """
     
     from zipfile import ZipFile
-    import os
+    import os, pandas, pickle
     os.chdir(dirName)
     with ZipFile(zipFileName, 'w') as zipObj:
         # Iterate over all the files in session directory
         for filename in os.listdir(dirName):
             # Only share and zip up the relevant files.
             if filter_results(filename):
-                zipObj.write(filename, filename)
+    		# posthoc convert to .csv
+                with open(filename, "rb") as f: 
+                    myobject = pickle.load(f) 
+                    newname = filename.split(".")[0] + ".csv"
+                    df = pandas.DataFrame(myobject)
+                    df.to_csv(newname)
+                    zipObj.write(newname, newname)
 
 def filter_results(filename):
     # Filter what error measures and results should be shared.
