@@ -12,20 +12,18 @@ The model name follows the syntax _"{alg}\_{name}\_{sample}\_{n}sites"_:
 
 Example: 'BLR_lifespan_57K_82sites' makes use of the Bayesian Linear Regression algorithm, across the human lifespan, trained on ~57.000 subjects from 82 different collection sites.
 
-We currently support two algorithms, Bayesian Linear Regression (BLR) and Hierarchical Bayesian Regression (HBR). For choosing a model, the main practical difference is that HBR requires full Bayesian estimation and therefore takes more time to provide results - and may therefore provide better results.
+We currently support two algorithms, Bayesian Linear Regression (BLR) and Hierarchical Bayesian Regression (HBR). For choosing a model, the main practical difference is that HBR requires full Bayesian estimation. HBR therefore takes more time to provide results and may provide better results.
 
 Please note: the number of available models is constantly growing, and more data types will continue to be supported. Let us know about specific requests on [![Gitter](https://badges.gitter.im/PCNportal/community.svg)](https://gitter.im/PCNportal/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
 
 <br />
 ### Model contributions
 
-Contributions of models are accepted and encouraged by PCNportal. Models trained with PCNtoolkit can be added instantly after adapting the standard directory structure, while other models will need to provide an API as well.
+Contributions of new models to PCNportal are accepted and encouraged. Models trained with the [PCNtoolkit](https://github.com/amarquand/PCNtoolkit) library can be added to the platform easily after adapting the standard directory structure. Models trained otherwise will need to provide an API as well.
 
 Example directory:  
 ![img](assets/modelcontribution.png)
-'Models' contains all models with naming convention NM*0\_\{x\}\_fit.pkl where \_x* is the model number corresponding to the order of idp ids.
-The features that were used in training should be saved in 'idp*ids.txt', the names of data collection sites in 'site_ids.txt', the names of mandatory columns (covariates and site effects) in 'mandatory_columns.txt'. All strings should be separated with return ('\n'). Any information about the model and how its trained (including hyperparameters) should be provided in the 'README.md', along with a data template link that follows the syntax: *\[Download\]\(download_link\)\_.
 
-Models not trained with PCNtoolkit can be accepted when a Python script is provided for transfer learning. Please contact us on Gitter to discuss such options.
+To contribute a model, please prepare a model directory that follows the same structure as the others. The full up-to-date instructions on how to contribute models can be found [here](https://docs.google.com/document/d/1PxYHUmn4XjvPJXtqMNHkkKLAPrzsYonlNxdtxMxlXoA/edit?usp=sharing).
 
-Models will be tested by experts before being hosted on the website.
+Models not trained with PCNtoolkit can be accepted when a Python script is provided for transfer learning. Please contact us on Gitter to discuss such options. Models will be tested by experts before being hosted on the website.

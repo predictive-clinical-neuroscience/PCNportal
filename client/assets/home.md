@@ -6,7 +6,8 @@ Our [Predictive Clinical Neuroscience group](https://predictiveclinicalneuroscie
 Clinical heterogeneity makes case-control studies insufficient to fully understand brain dysfunction, and normative models are a highly effective way to deal with this individual variability. These models can be developed using our [PCNtoolkit](https://github.com/amarquand/PCNtoolkit): a highly flexible normative modeling framework that can handle multi-site data and more. Knowledge of data modelling in Python is enough to start implementing normative models with this toolkit, because the necessary algorithms are already provided. Nevertheless, developing your own high-quality normative models takes considerable resources and time. Moreover, large neuroimaging training data sets are necessary to harness the power of normative models which forms a considerable computational bottleneck, as for all big data models. _Learn more about normative modelling and how to develop your own models with PCNtoolkit [here](https://pcntoolkit.readthedocs.io/en/latest/pages/pcntoolkit_background.html)._
 
 **How does this website help me with normative modeling?**
-This website makes it trivial to run normative models pre-trained on tens of thousands of brain images from many different data collection sites on your data with parallelized computation. You can now make use of all of our available models in a few clicks, requiring no technical background or compute power, and only a data set of choice. With minimal effort, you can derive subject level statistics for further analysis and find out how well your neural biomarkers match the normative patterns we provide as a function of covariates such as age and gender. For more detailed information on PCNportal, please refer to our peer-reviewed [article](https://wellcomeopenresearch.org/articles/8-326) on this tool.
+This website makes it trivial to run normative models pre-trained on tens of thousands of brain images from many different data collection sites on your data with parallelized computation. You can now make use of all of our available models in a few clicks, requiring no technical background or compute power, and only a data set of choice. With minimal effort, you can derive subject level statistics for further analysis and find out how well your neural biomarkers match the normative patterns we provide as a function of covariates such as age and gender. For more detailed information on PCNportal, please refer to our peer-reviewed [article](https://wellcomeopenresearch.org/articles/8-326).
+
 Happy modelling!
 
 ---
@@ -21,7 +22,7 @@ _**Disclaimer:** this application strives to comply with best practices in data 
 
 <br />
 __Core development team:__                                                                      
-[Pieter Barkema](https://twitter.com/pieterbarkema) (Main Developer) (pieterwbarkema@gmail.com)  
+[Pieter Barkema](https://twitter.com/pieterbarkema) (Main Developer) (pieter.barkema.22@ucl.ac.uk)  
 [Hurng-Chun Lee](https://www.linkedin.com/in/hurng-chun-lee-50b40219/) (ICT support, DCCN Technical Group)  
 [Saige Rutherford](https://www.beingsaige.com/) (Data Engineer) 
 [Andre Marquand](https://www.radboudumc.nl/en/people/andre-marquand) (Project Manager) (andre.marquand@donders.ru.nl) 

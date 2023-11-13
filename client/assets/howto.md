@@ -15,7 +15,7 @@
 
 - From your chosen model, view the model-specific information and download the provided data template .csv.
 - Using the template, ensure that your data set uses the same atlas parcellation as the model and make sure the column names of your data match the template.
-- Split your data into an adaptation and test set according to your preferred ratio (for example, 50/50). Adaptation data is used for adjusting the model to the new data collection site, while test data is to evaluate it. The split is a trade-off between higher quality of the model (more adaptation data) and a better estimate of model quality (more test data). The best split will also take into account balanced sex, age and other covariates as well as possible between adaptation and test data.
+- Split your data into an adaptation and test set according to your preferred ratio (for example, 50/50). Adaptation data is used for adjusting the model to the new data collection site, while test data is to evaluate it. The split is a trade-off between higher quality of the model (more adaptation data) and a better estimate of model quality as well as more subjects to get results from (more test data). The best split will also take into account balanced sex, age and other covariates as well as possible between adaptation and test data.
 
 - Upload your test and adaptation data in the right boxes.
 
@@ -24,6 +24,7 @@
 - Enter the email address where you would like to receive your results.
 - Press _Submit_. Congratulations!
 - Wait a moment to receive your session ID and feedback on how well your data matches the template.
+- If your data is formatted correctly, you will see a green box to signal that your computation request has been sent.
 
 **What happens next?**
 
@@ -35,7 +36,7 @@
 **What can I do with my results?**
 The resulting z-scores represent the deviations per feature per subject. Follow-up analysis can exploit this information to learn more about the relationship between your data and, for example, cognitive ability or diagnostic measures on the individual level. Some options for follow-up analysis are mass univariate group comparisons, post-hoc classification, and multivariate prediction, discussed in [Rutherford et al. (2022)](https://www.biorxiv.org/content/10.1101/2022.11.14.516460v1).
 
-The other result files contain different evaluation measures per subject of the transferred model fit. Pearson's Rho correlation and its p-value, Squared Mean Standardised Error (SMSE), Root Mean Squared Error (RMSE) and explained variance are provided for BLR, and for HBR the Mean Standardized Log-Loss (MSLL) is also provided. Pearson's Rho, SMSE and RMSE all score the model fit by evaluating the predicted mean, with a lower Pearson's Rho and a higher SMSE and RMSE indicating a better fit. The MSLL also measures the quality of estimated variance as is important for estimating individual variation ([Kia et al.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9731431/), 2023).
+The other result files contain different evaluation measures per subject of the adapted model fit. Pearson's Rho correlation and its p-value, Squared Mean Standardised Error (SMSE), Root Mean Squared Error (RMSE) and explained variance are provided for BLR, and for HBR the Mean Standardized Log-Loss (MSLL) is also provided. Pearson's Rho, SMSE and RMSE all score the model fit by evaluating the predicted mean, with a lower Pearson's Rho and a higher SMSE and RMSE indicating a better fit. The MSLL also measures the quality of estimated variance as is important for estimating individual variation ([Kia et al.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9731431/), 2023).
 
 Normative modelling is also a very visual concept, but visualization is not directly supported on the website yet. You can use the code at the bottom of this Jupyter [notebook](https://github.com/predictive-clinical-neuroscience/braincharts/blob/master/scripts/apply_normative_models_ct.ipynb) to plot your own results.
 <br />
@@ -61,4 +62,4 @@ After submission, your tab should look something like below:
 
 <img src="assets/demo.png" width='70%' length='70%'/>
 
-The green box will appear some time later after computation is complete. When it shows up, it's time to check your inbox for results!
+The green box will appear to signal that the computation request has been sent. With this data set, the results should be in your inbox within an hour (but likely much sooner).

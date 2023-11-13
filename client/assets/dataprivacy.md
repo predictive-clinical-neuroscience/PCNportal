@@ -1,4 +1,4 @@
-## Data Privacy
+## Data privacy
 
 Your data privacy is important to us, so we take the necessary precautions to limit who can access your data to keep it secure. Here we explain how we take care of your data and strive to ethically follow data sharing guidelines so you can hopefully feel comfortable using our services.
 

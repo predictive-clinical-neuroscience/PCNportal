@@ -76,6 +76,7 @@ app.layout = html.Div([
                 dcc.Markdown(id="modelinfo-readme", link_target="_blank", dangerously_allow_html=True), style={'margin':'auto','width':"80%"},
             )
         ]),
+        
 
         # The submission form
         dcc.Tab(label='Compute here!', id='modelling',
@@ -209,6 +210,12 @@ app.layout = html.Div([
             )
             ], style={'margin':'auto', 'width':'75%', 'flex': 1}),
         ]),
+        dcc.Tab(label='Data privacy', children=[
+            html.Br(),
+            html.Div(
+                dcc.Markdown(id="dataprivacy", link_target="_blank", dangerously_allow_html=True), style={'margin':'auto','width':"80%"},
+            )
+        ]),
     ])
     ),
 #     html.Div(
@@ -219,15 +226,16 @@ app.layout = html.Div([
 #         ]
 # ),
 
-    ], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'}),
+    ], className="myDiv", style={'position': 'absolute', 'font-size':'small','display': 'flex', 'flex-direction': 'row', 'z-index': '1', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'}),
     html.Div(
-    style={'position': 'fixed', 'left': '70%', 'top': '-11%', 'height':'260px', 'width':'260px'}, #'padding':'0%', 'left': '99%', 'top': '97%',
+   # style={'position': 'fixed', 'left': '68%', 'top': '-13%', 'height':'300px', 'width':'300px', 'z-index': '0'}, #'padding':'0%', 'left': '99%', 'top': '97%',
+    style={'position': 'fixed', 'left': '72%', 'top': '-6.8%', 'height':'320px', 'width':'320px', 'z-index': '100'},
     children=[
         # Workaround: readmes didn't load. Let image loading trigger the readme loading. 
-        html.Img(id="load-readme-trigger",src='assets/merged_images_update.png', alt='image', style={'height':'90%', 'width':'90%'}), #'padding': '0%', , 'height':'700%', 'width':'700%'
+        html.Img(id="load-readme-trigger",src='assets/merged_images_update.png', alt='sponsor_logos_image', style={'height':'100%', 'width':'100%'}), #'padding': '0%', , 'height':'700%', 'width':'700%'
     ]
 ),
-])
+], style={'position': 'relative', 'flex-direction': 'column','vertical-align':'top'})
 # -----------------------------------------------------------------
 # All functions that handle input and output for the Dash components.
 # -----------------------------------------------------------------
@@ -237,6 +245,7 @@ app.layout = html.Div([
     Output(component_id='howto-readme', component_property='children'),
     Output(component_id='modelinfo-readme', component_property='children'),
     Output(component_id='compute', component_property='children'),
+    Output(component_id='dataprivacy', component_property='children'),
     Input(component_id='load-readme-trigger', component_property='children'),
     prevent_initial_call=False
 )
@@ -250,7 +259,9 @@ def load_tabs_markdown(load_readme_trigger):
         modelinfo = mdfile.readlines()
     with open('assets/compute.md', 'r') as compute:
         compute = compute.readlines()
-    return home, howto, modelinfo, compute
+    with open('assets/dataprivacy.md', 'r') as dataprivacy:
+        dataprivacy = dataprivacy.readlines()
+    return home, howto, modelinfo, compute, dataprivacy
 
 # Function for dynamically reading in dynamic model information markdown files, model templates and mandatory columns.
 @app.callback(
