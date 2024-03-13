@@ -46,6 +46,7 @@ def transfer_normative_models():
     import numpy as np
     import pandas as pd
     import pickle
+    import json
     import pcntoolkit as ptk
     from package_and_send_surfdrive import send_results
     from pcntoolkit.util.utils import create_design_matrix
@@ -192,22 +193,41 @@ def transfer_normative_models():
         # Creates many small batches for quicker processing.
         batch_size = int(testing_sample**(1/3)) if int(testing_sample**(1/3)) >= 1 else 1
         memory = '4gb'
-        duration = '3:00:00'
+        duration = '15:00:00'
         outputsuffix = '_transfer'
         python_path = python_path = '/project_cephfs/3022051.01/pcnportalconda/bin/python'
-#'/home/preclineu/piebar/.conda/envs/remotepcn/bin/python'
 
-        # Model & Data configs.
-        method = 'linear'#'bspline' # 'linear' 'polynomial' 
+        # Set default configuration
+        inscaler = 'None' 
+        outscaler = 'None'
+        method = 'linear' #'bspline' # 'linear' 'polynomial' 
+        likelihood = 'Normal'        
         random_intercept = 'True'
         random_slope = 'True'
         random_noise = 'True'
-        inscaler = 'None' 
-        outscaler = 'None'
+        random_slope_sigma = 'False'        
         if model_name in ['HBR_HOM']:    
             hetero_noise = 'False'
         else:
             hetero_noise = 'True'
+        
+        # Override defaults if a config file is found
+        cfg_file = os.path.join(model_info_path,'config.json')
+        if os.path.exists(cfg_file):
+            with open(cfg_file,'r') as f:
+                cfg = json.loads(json.load(f))
+            if 'likelihood' in cfg.keys():
+                likelihood = cfg['likelihood']
+                if likelihood != 'Normal':
+                    batch_size = 1
+            if 'model_type' in cfg.keys():
+                method = cfg['model_type']
+            if 'random_slope_sigma' in cfg:
+                random_slope_sigma = cfg['random_slope_sigma']
+            if 'inscaler' in cfg.keys():
+                inscaler = cfg['inscaler']
+            if 'outscaler' in cfg.keys():
+                outscaler = cfg['outscaler']
             
         # Setting up the Paths and Model.
         job_name = model_name + '_'  + method 
@@ -231,7 +251,8 @@ def transfer_normative_models():
                 n_samples='1000', inscaler=inscaler, outscaler=outscaler, 
                 testcovfile_path=cov_file_te, testrespfile_path=resp_file_te,
                 tsbefile = sitenum_file_te, output_path=output_path,
-                model_path=model_path, log_path=log_dir,count_jobsdone=count_jobsdone)
+                model_path=model_path, log_path=log_dir,count_jobsdone=count_jobsdone,
+                likelihood=likelihood, random_slope_sigma=random_slope_sigma)
         
         # Loop that only finishes when models are succesfully completed.
         complete = False
@@ -252,10 +273,10 @@ def transfer_normative_models():
             ptk.normative_parallel.rerun_nm(session_path, log_dir, memory, duration, binary=True)
         
     # Communicate results with Gmail and SURFdrive API.
-        for root, dirs, files in os.walk(log_dir):
-            for file in files:
-                if '.e' in file or '.o' in file:
-                    os.chmod(os.path.join(root, file), 0o660)
+    for root, dirs, files in os.walk(log_dir):
+        for file in files:
+            if '.e' in file or '.o' in file:
+                os.chmod(os.path.join(root, file), 0o660)
   #      os.chmod(log_dir+"*.e*", 0o660)
    #s     os.chmod(log_dir+"*.o*"
    
@@ -284,7 +305,7 @@ def await_jobs(session_path, log_dir):
     import time, glob
     jobs_done = False
     # Maximum time limit to wait, before trying to collect results.
-    max_time = 16000
+    max_time = 86400 # = 24 hours (was 16000)
     # Prevents unnecessary computations.
     sleep_time = 20
     elapsed_time = 0
@@ -303,6 +324,7 @@ def await_jobs(session_path, log_dir):
         elapsed_time+=sleep_time
         # Break out of loop to check for failed jobs.
         if elapsed_time > max_time:
+            print("Maximum wait time elapsed.")
             break
     print("All", done_count, " out of ", number_of_batches, " jobs done!")
 
