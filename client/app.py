@@ -27,9 +27,10 @@ def retrieve_options(data_type=None):
     import ast
     
     # Choose between data type or models directory
-    chosen_dir = "models"
+    chosen_dir = os.environ['MODELS']
+    
     if data_type is not None:
-        chosen_dir = os.path.join("models", data_type)
+        chosen_dir = os.path.join(chosen_dir, data_type)
     try: 
         py_script = os.path.join(os.environ['PROJECTDIR'], os.environ['SCRIPTDIR'], os.environ['LISTDIR'])
     except KeyError:
@@ -75,6 +76,7 @@ app.layout = html.Div([
                 dcc.Markdown(id="modelinfo-readme", link_target="_blank", dangerously_allow_html=True), style={'margin':'auto','width':"80%"},
             )
         ]),
+        
 
         # The submission form
         dcc.Tab(label='Compute here!', id='modelling',
@@ -203,7 +205,16 @@ app.layout = html.Div([
                             html.Br(),
                         ]
                        ),
+                    html.Div(
+                dcc.Markdown(id="compute", link_target="_blank", dangerously_allow_html=True), style={'margin':'auto'},
+            )
             ], style={'margin':'auto', 'width':'75%', 'flex': 1}),
+        ]),
+        dcc.Tab(label='Data privacy', children=[
+            html.Br(),
+            html.Div(
+                dcc.Markdown(id="dataprivacy", link_target="_blank", dangerously_allow_html=True), style={'margin':'auto','width':"80%"},
+            )
         ]),
     ])
     ),
@@ -215,15 +226,16 @@ app.layout = html.Div([
 #         ]
 # ),
 
-    ], className="myDiv", style={'font-size':'small','display': 'flex', 'flex-direction': 'row', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'}),
+    ], className="myDiv", style={'position': 'absolute', 'font-size':'small','display': 'flex', 'flex-direction': 'row', 'z-index': '1', 'height': '40%', 'width': '50%', 'position': 'relative', 'top':'40%', 'left':'25%', 'backgroundColor':'white'}),
     html.Div(
-    style={'position': 'fixed', 'left': '70%', 'top': '-11%', 'height':'260px', 'width':'260px'}, #'padding':'0%', 'left': '99%', 'top': '97%',
+   # style={'position': 'fixed', 'left': '68%', 'top': '-13%', 'height':'300px', 'width':'300px', 'z-index': '0'}, #'padding':'0%', 'left': '99%', 'top': '97%',
+    style={'position': 'fixed', 'left': '72%', 'top': '-6.8%', 'height':'320px', 'width':'320px', 'z-index': '100'},
     children=[
         # Workaround: readmes didn't load. Let image loading trigger the readme loading. 
-        html.Img(id="load-readme-trigger",src='assets/merged_images_update.png', alt='image', style={'height':'90%', 'width':'90%'}), #'padding': '0%', , 'height':'700%', 'width':'700%'
+        html.Img(id="load-readme-trigger",src='assets/merged_images_update.png', alt='sponsor_logos_image', style={'height':'100%', 'width':'100%'}), #'padding': '0%', , 'height':'700%', 'width':'700%'
     ]
 ),
-])
+], style={'position': 'relative', 'flex-direction': 'column','vertical-align':'top'})
 # -----------------------------------------------------------------
 # All functions that handle input and output for the Dash components.
 # -----------------------------------------------------------------
@@ -232,6 +244,8 @@ app.layout = html.Div([
     Output(component_id='home-readme', component_property='children'),
     Output(component_id='howto-readme', component_property='children'),
     Output(component_id='modelinfo-readme', component_property='children'),
+    Output(component_id='compute', component_property='children'),
+    Output(component_id='dataprivacy', component_property='children'),
     Input(component_id='load-readme-trigger', component_property='children'),
     prevent_initial_call=False
 )
@@ -243,7 +257,11 @@ def load_tabs_markdown(load_readme_trigger):
         howto = mdfile.readlines()
     with open('assets/modelinfo.md', 'r') as mdfile:
         modelinfo = mdfile.readlines()
-    return home, howto, modelinfo
+    with open('assets/compute.md', 'r') as compute:
+        compute = compute.readlines()
+    with open('assets/dataprivacy.md', 'r') as dataprivacy:
+        dataprivacy = dataprivacy.readlines()
+    return home, howto, modelinfo, compute, dataprivacy
 
 # Function for dynamically reading in dynamic model information markdown files, model templates and mandatory columns.
 @app.callback(
@@ -260,7 +278,8 @@ def model_information(model_selection, data_type):
 
         projectdir = os.environ['PROJECTDIR']
         username = os.environ['MYUSER']
-        model_path = os.path.join(projectdir, "models", data_type, model_selection) 
+        
+        model_path = os.path.join(projectdir, os.environ['MODELS'], data_type, model_selection) 
         readme_path = os.path.join(model_path,"README.md")
         covsbe_path = os.path.join(model_path, "mandatory_columns.txt") 
 
@@ -334,7 +353,7 @@ def input_checker(mandatory_columns, download_template, current_request, previou
         for col in mandatory_columns:
             if col not in test_data_columns or col not in adapt_data_columns:
                 return False, "You are missing some or all of the following mandatory columns (batch effects or covariates) in your data sets: " + ", ".join(mandatory_columns) + ". "
-        return_message = [return_message, "Your data set has all the necessary covariates for this model.", html.Br()]
+        return_message = [return_message, "Your data set has all the necessary covariates and site effects for this model.", html.Br()]
 
         # Report the amount of matching template names per file.
         test_data_matches = goal_columns.intersection(test_data_columns).size
@@ -429,7 +448,7 @@ def update_output(email_address, data_type, model_selection, test_contents, test
         projectdir = os.environ['PROJECTDIR'] #"/project_cephfs/3022051.01"
         scriptdir = os.environ['SCRIPTDIR'] #"test_scripts/server"
         executefile = os.environ['EXECUTEFILE']#"execute_modelling.sh"#
-        
+        model_dir = os.environ['MODELS']
         # Upload the data to the server.
         remote_session_dir = os.path.join(projectdir, "sessions", session_id).replace("\\","/")
         scp = 'ssh -o "StrictHostKeyChecking=no" {username} mkdir -p {remote_session_dir} && scp -o "StrictHostKeyChecking=no" {test} {adapt} {username}:{remote_session_dir}'.format(username = username, remote_session_dir = remote_session_dir, test=test_path, adapt=adapt_path)
@@ -443,10 +462,15 @@ def update_output(email_address, data_type, model_selection, test_contents, test
 
         # Submit computation request with all the collected user input.
         bash_path = os.path.join(projectdir, scriptdir, executefile).replace("\\","/") 
-        execute = 'ssh -o "StrictHostKeyChecking=no" {user} {bash_path} {projectdir} {model_selection} {data_type} {session_id} {algorithm} {email_address}'.format(user=username, bash_path=bash_path, projectdir = projectdir, model_selection=model_selection, data_type = data_type, session_id=session_id, algorithm=algorithm, email_address = email_address) 
+        #echo '/project_cephfs/3022051.01/scripts/server/execute_modelling.sh /project_cephfs/3022051.01/ BLR_lifespan_57K_82sites ThickAvg test_session_25901cb4670348fca60b7d6bde1a56be BLR pieterwbarkema@gmail.com' | qsub -l walltime=4:00:00,mem=4gb
+        #execute = 'ssh -o "StrictHostKeyChecking=no" {user} {bash_path} {projectdir} {model_selection} {data_type} {session_id} {algorithm} {email_address}'.format(user=username, bash_path=bash_path, projectdir = projectdir, model_selection=model_selection, data_type = data_type, session_id=session_id, algorithm=algorithm, email_address = email_address) 
+        # use echo and qsub to close ssh connection instantly
+        stderr = os.path.join(projectdir, "sessions", session_id, "main_job_error.txt")
+        stdout = os.path.join(projectdir, "sessions", session_id, "main_job_output.txt")
+        execute = "ssh -o 'StrictHostKeyChecking=no' {user} 'echo \"{bash_path} {projectdir} {model_selection} {data_type} {session_id} {model_dir} {email_address}\" | qsub -l walltime=23:00:00,mem=4gb -e {stderr} -o {stdout}'".format(user=username, bash_path=bash_path, projectdir = projectdir, model_selection=model_selection, data_type = data_type, session_id=session_id, model_dir = model_dir, email_address = email_address, stderr=stderr, stdout=stdout)
         subprocess.call(execute, shell=True)
 
-        finished_message = "We completed your request with session ID: {session_id}".format(session_id=session_id)
+        finished_message = "Your request has successfully been submitted with session ID: {session_id}.\nYou should receive results in your inbox the coming hour(s).".format(session_id=session_id)
         return finished_message, "success", True
     else: return no_update, no_update, no_update
 

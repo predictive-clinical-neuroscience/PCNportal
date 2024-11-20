@@ -1,6 +1,7 @@
 import pandas as pd
+import pcntoolkit
 path=r""
-x = pd.read_pickle("/project_cephfs/3022051.01/sessions/3839801196b2401f83576cce02fa2414/sitenum_ad.pkl")
+x = pd.read_pickle("/project_cephfs/3022051.01/untested_models/Cerebellum/HBR_10MDTB-CerebellumFunc-linear_7K_2sites/Models/meta_data.md")
 y = x.to_numpy(dtype="int")
 print(x)
 # import matplotlib.pyplot as plt
