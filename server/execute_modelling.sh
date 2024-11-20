@@ -13,7 +13,7 @@
 # Activate our virtual environment
 cd /project_cephfs/3022051.01
 module load "anaconda3/2021.05"
-source activate /project_cephfs/3022051.01/pcnportalconda
+source activate /project_cephfs/3022051.01/pcnptk030
 
 # Start modelling
 echo "Bash script activated..."
