@@ -193,26 +193,19 @@ def transfer_normative_models():
         # Creates many small batches for quicker processing.
         batch_size = int(testing_sample**(1/3)) if int(testing_sample**(1/3)) >= 1 else 1
         memory = '4gb'
-<<<<<<< HEAD
         duration = '48:00:00'
         outputsuffix = '_transfer'
         python_path = '/project_cephfs/3022051.01/pcnptk030/bin/python'
-=======
-        duration = '15:00:00'
-        outputsuffix = '_transfer'
-        python_path = python_path = '/project_cephfs/3022051.01/pcnportalconda/bin/python'
->>>>>>> c4d823c14d6f26fc5376cd821d39252f158e8e72
+      
 
         # Set default configuration
         inscaler = 'None' 
         outscaler = 'None'
         method = 'linear' #'bspline' # 'linear' 'polynomial' 
-<<<<<<< HEAD
+
         likelihood = 'Normal' 
-        init = 'jitter+adapt_diag'       
-=======
-        likelihood = 'Normal'        
->>>>>>> c4d823c14d6f26fc5376cd821d39252f158e8e72
+        init = 'jitter+adapt_diag'          
+
         random_intercept = 'True'
         random_slope = 'True'
         random_noise = 'True'
@@ -239,12 +232,9 @@ def transfer_normative_models():
                 inscaler = cfg['inscaler']
             if 'outscaler' in cfg.keys():
                 outscaler = cfg['outscaler']
-<<<<<<< HEAD
             if 'init' in cfg.keys():
                 init = cfg['init']
-=======
->>>>>>> c4d823c14d6f26fc5376cd821d39252f158e8e72
-            
+
         # Setting up the Paths and Model.
         job_name = model_name + '_'  + method 
         log_dir = session_path + '/log/'
@@ -293,17 +283,6 @@ def transfer_normative_models():
         for file in files:
             if '.e' in file or '.o' in file:
                 os.chmod(os.path.join(root, file), 0o660)
-<<<<<<< HEAD
-                
-    for root, dirs, files in os.walk(session_path):
-        for file in files:
-            if 'main_job_' in file:
-                print("modified")
-                os.chmod(os.path.join(root, file), 0o660)
-=======
->>>>>>> c4d823c14d6f26fc5376cd821d39252f158e8e72
-  #      os.chmod(log_dir+"*.e*", 0o660)
-   #s     os.chmod(log_dir+"*.o*"
    
     send_results(session_id, email_address)
         
@@ -330,11 +309,8 @@ def await_jobs(session_path, log_dir):
     import time, glob
     jobs_done = False
     # Maximum time limit to wait, before trying to collect results.
-<<<<<<< HEAD
     max_time = 2*86400 # = 24 hours (was 16000)
-=======
-    max_time = 86400 # = 24 hours (was 16000)
->>>>>>> c4d823c14d6f26fc5376cd821d39252f158e8e72
+
     # Prevents unnecessary computations.
     sleep_time = 20
     elapsed_time = 0

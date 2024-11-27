@@ -17,5 +17,5 @@ source activate /project_cephfs/3022051.01/pcnptk030
 
 # Start modelling
 echo "Bash script activated..."
-python /project_cephfs/3022051.01/scripts/server/transfer_normative_models_online.py $1 $2 $3 $4 $5 $6
+python /project_cephfs/3022051.01/test_scripts/server/transfer_normative_models_online.py $1 $2 $3 $4 $5 $6
 
