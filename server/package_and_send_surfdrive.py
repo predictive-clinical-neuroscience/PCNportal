@@ -37,7 +37,10 @@ def send_results(session_id, email_address):
     """
     
     import os
-    session_path = "/project_cephfs/3022051.01/sessions/" + session_id
+    import config
+    
+    project_dir = config.project_dir
+    session_path = os.path.join(project_dir,"sessions",session_id)
     from_path = os.path.join(session_path, "results.zip")
     zip_name = "results.zip"
 
@@ -79,7 +82,7 @@ def email_results(session_id, email_receiver):
     # Set the subject and body of the email
     subject = "Your normative modelling results"
     session_results_URL = config.surf_link + session_id #"https://surfdrive.surf.nl/files/index.php/s/FwXZqWwp2asnj2c?path=%2F"
-    body = " Here's your normative results: \n" + session_results_URL + " \n You'll be navigated to your results directory. \n Please click on the results.zip file to download it. "
+    body = " Here are your normative modelling results: \n" + session_results_URL + " \n You'll be navigated to your results directory. \n Please click on the results.zip file to download it. "
 
     em = EmailMessage()
     em['From'] = email_sender

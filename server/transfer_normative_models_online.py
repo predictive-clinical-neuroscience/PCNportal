@@ -47,12 +47,13 @@ def transfer_normative_models():
     import pandas as pd
     import pickle
     import json
+    import config
     import pcntoolkit as ptk
     from package_and_send_surfdrive import send_results
     from pcntoolkit.util.utils import create_design_matrix
     
     # Read in website input.
-    root_dir = "/project_cephfs/3022051.01/"
+    root_dir = config.project_dir       
     model_name= sys.argv[2]
     data_type = sys.argv[3]
     session_id = sys.argv[4]
@@ -65,7 +66,7 @@ def transfer_normative_models():
     
     # Create session directory, and read in data.
     session_path = os.path.join(root_dir, "sessions", session_id) +"/"
-    #print(f'{session_path}')
+    print(f'{session_path}')
     if not os.path.isdir(session_path):
                 os.mkdir(session_path) 
     os.chdir(session_path)
@@ -192,10 +193,16 @@ def transfer_normative_models():
 
         # Creates many small batches for quicker processing.
         batch_size = int(testing_sample**(1/3)) if int(testing_sample**(1/3)) >= 1 else 1
-        memory = '4gb'
-        duration = '48:00:00'
-        outputsuffix = '_transfer'
-        python_path = '/project_cephfs/3022051.01/pcnptk033/bin/python'
+        outputsuffix = '_transfer' 
+        try:
+            memory = config.memory
+        except ValueError:
+            memory = '4gb'
+        try:
+            duration = config.duration
+        except ValueError:
+            duration = '48:00:00'
+        python_path = config.python_path
 
         # Set default configuration
         inscaler = 'None' 
@@ -214,7 +221,7 @@ def transfer_normative_models():
         else:
             hetero_noise = 'True'
         
-        # Override defaults if a config file is found
+        # Override defaults if a model config file is found
         cfg_file = os.path.join(model_info_path,'config.json')
         if os.path.exists(cfg_file):
             with open(cfg_file,'r') as f:
