@@ -288,7 +288,7 @@ def transfer_normative_models():
     for root, dirs, files in os.walk(log_dir):
         for file in files:
             if '.e' in file or '.o' in file:
-                os.chmod(os.path.join(root, file), 0o660)
+                os.chmod(os.path.join(root, file), 0o664)
    
     send_results(session_id, email_address)
         
