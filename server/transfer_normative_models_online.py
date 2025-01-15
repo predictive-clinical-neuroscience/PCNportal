@@ -182,8 +182,7 @@ def transfer_normative_models():
                                 respfile=resp_file_te, 
                                 model_path=model_path,
                                 tsbefile = sitenum_file_te,
-                                trbefile=sitenum_file_ad,
-                                cluster_spec = 'slurm') #os.path.join(root_dir,'Models'))
+                                trbefile=sitenum_file_ad) #os.path.join(root_dir,'Models'))
     else:        
 
         
@@ -265,7 +264,7 @@ def transfer_normative_models():
                 testcovfile_path=cov_file_te, testrespfile_path=resp_file_te,
                 tsbefile = sitenum_file_te, output_path=output_path,
                 model_path=model_path, log_path=log_dir,count_jobsdone=count_jobsdone,
-                likelihood=likelihood, random_slope_sigma=random_slope_sigma, cluster_spec='slurm')
+                likelihood=likelihood, random_slope_sigma=random_slope_sigma)
         
         # Loop that only finishes when models are succesfully completed.
         complete = False
