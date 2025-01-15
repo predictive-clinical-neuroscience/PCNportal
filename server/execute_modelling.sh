@@ -7,7 +7,7 @@
 # 2 = model name
 # 3 = data type dir
 # 4 = session id
-# 5 = model
+# 5 = model directory
 # 6 = user email address
 
 PROJECTDIR=$1
