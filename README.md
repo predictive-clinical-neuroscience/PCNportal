@@ -24,7 +24,7 @@ The website:
 
 ## Testing & Installation
 
-Testing the website's functionality can be done through modelling with demo data, as can be found on the website under 'How to Model' (but also available in the Wiki's client side page). More demo data can be found in [PCNportal/client/docs](https://github.com/predictive-clinical-neuroscience/PCNportal/tree/main/client/docs).
+Testing the website's functionality can be done through modelling with demo data, as found on the website under 'How to Model' (but also available in the Wiki's client side page). More demo data can be found in [PCNportal/client/docs](https://github.com/predictive-clinical-neuroscience/PCNportal/tree/main/client/docs).
 
 To locally deploy the GUI without modelling functionality, please follow these instructions. You will first need to install [Docker](https://docs.docker.com/get-docker/), and then:
 * Open up cmd and clone the GitHub repository with 
