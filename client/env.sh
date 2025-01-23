@@ -5,7 +5,7 @@
 export MYUSER=user@hostname
 
 # root directory on the PCNportal server
-export PROJECTDIR=/home/preclineu/stijdboe/workingdir/Projects/PCNportal_sanbox/refactor
+export PROJECTDIR=/project_cephfs/3022051.01
 
 # script directory on the server 
 export SCRIPTDIR=scripts/server

@@ -274,12 +274,16 @@ def load_tabs_markdown(load_readme_trigger):
 )
 def model_information(model_selection, data_type):
     # Only execute when model is chosen, to prevent errors.
-    if model_selection != 'please select data type first...' and model_selection != 'Select...' and model_selection != "":
+    if model_selection not in [None, 'please select data type first...', 'Select...', ""]:
+        assert model_selection, "model_selection is None"
+        assert os.environ['PROJECTDIR'], "projectdir is None"
+        assert os.environ['MODELS'], "MODELS is None"
+        assert data_type, "data_type is None"
 
         projectdir = os.environ['PROJECTDIR']
         username = os.environ['MYUSER']
-        
-        model_path = os.path.join(projectdir, os.environ['MODELS'], data_type, model_selection) 
+
+        model_path = os.path.join(projectdir, os.environ['MODELS'], f"{data_type}", model_selection) 
         readme_path = os.path.join(model_path,"README.md")
         covsbe_path = os.path.join(model_path, "mandatory_columns.txt") 
 
