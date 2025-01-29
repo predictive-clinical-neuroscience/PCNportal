@@ -275,10 +275,6 @@ def load_tabs_markdown(load_readme_trigger):
 def model_information(model_selection, data_type):
     # Only execute when model is chosen, to prevent errors.
     if model_selection not in [None, 'please select data type first...', 'Select...', ""]:
-        assert model_selection, "model_selection is None"
-        assert os.environ['PROJECTDIR'], "projectdir is None"
-        assert os.environ['MODELS'], "MODELS is None"
-        assert data_type, "data_type is None"
 
         projectdir = os.environ['PROJECTDIR']
         username = os.environ['MYUSER']
