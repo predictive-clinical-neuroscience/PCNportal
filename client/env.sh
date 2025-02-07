@@ -21,3 +21,6 @@ export EXECUTEFILE=execute_modelling.sh
 
 # testing mode (prefix session id with test_session_xxx)
 export LOCALTESTING=False
+
+# python environment on the server
+export PYTHON_ENV=pcnptk033

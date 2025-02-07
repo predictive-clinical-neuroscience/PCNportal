@@ -12,11 +12,12 @@
 
 PROJECTDIR=$1
 SCRIPTDIR=`dirname $0`
-
+PYTHON_ENV=$7
 # Activate our virtual environment
+
 cd $PROJECTDIR
 module load "anaconda3/2021.05"
-source activate ${PROJECTDIR}/pcnptk033
+source activate ${PROJECTDIR}/${PYTHON_ENV}
 
 # Start modelling
 echo "Bash script activated..."
