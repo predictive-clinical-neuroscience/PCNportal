@@ -23,4 +23,4 @@ export EXECUTEFILE=execute_modelling.sh
 export LOCALTESTING=False
 
 # python environment on the server
-export PYTHON_ENV=pcnptk033
+export PYTHON_ENV=pcnptk034
