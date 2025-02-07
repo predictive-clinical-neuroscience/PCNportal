@@ -36,7 +36,7 @@ def retrieve_options(data_type=None):
     except KeyError:
         return ["No information could be retrieved. You are not connected to the server."]
     # Create a remotely executable SSH command
-    list_dirs = ["ssh", "-o", "StrictHostKeyChecking=no", os.environ['MYUSER'], "python", py_script, str(chosen_dir)]
+    list_dirs = ["ssh", "-o", "StrictHostKeyChecking=no", os.environ['MYUSER'], os.environ['PROJECTDIR']+"/"+os.environ['PYTHON_ENV']+"/bin/python", py_script, str(chosen_dir)]
     p = Popen(list_dirs, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     # Optionally, you can use err to check error codes.
     output, err = p.communicate()
@@ -449,6 +449,7 @@ def update_output(email_address, data_type, model_selection, test_contents, test
         scriptdir = os.environ['SCRIPTDIR'] #"test_scripts/server"
         executefile = os.environ['EXECUTEFILE']#"execute_modelling.sh"#
         model_dir = os.environ['MODELS']
+        python_env = os.environ['PYTHON_ENV']
         # Upload the data to the server.
         remote_session_dir = os.path.join(projectdir, "sessions", session_id).replace("\\","/")
         scp = 'ssh -o "StrictHostKeyChecking=no" {username} mkdir -p {remote_session_dir} && scp -o "StrictHostKeyChecking=no" {test} {adapt} {username}:{remote_session_dir}'.format(username = username, remote_session_dir = remote_session_dir, test=test_path, adapt=adapt_path)
@@ -465,7 +466,7 @@ def update_output(email_address, data_type, model_selection, test_contents, test
         stderr = os.path.join(projectdir, "sessions", session_id, "main_job_error.txt")
         stdout = os.path.join(projectdir, "sessions", session_id, "main_job_output.txt")
         
-        execute = "ssh -o 'StrictHostKeyChecking=no' {user} 'sbatch --time=23:00:00 --mem=4G --output={stdout} --error={stderr} --wrap=\"{bash_path} {projectdir} {model_selection} {data_type} {session_id} {model_dir} {email_address}\"'".format(
+        execute = "ssh -o 'StrictHostKeyChecking=no' {user} 'sbatch --time=23:00:00 --mem=4G --output={stdout} --error={stderr} --wrap=\"{bash_path} {projectdir} {model_selection} {data_type} {session_id} {model_dir} {email_address}  {python_env}\"'".format(
             user=username,
             bash_path=bash_path,
             projectdir=projectdir,
@@ -475,7 +476,8 @@ def update_output(email_address, data_type, model_selection, test_contents, test
             model_dir=model_dir,
             email_address=email_address,
             stderr=stderr,
-            stdout=stdout
+            stdout=stdout,
+            python_env=python_env
         )
         subprocess.call(execute, shell=True)
 
