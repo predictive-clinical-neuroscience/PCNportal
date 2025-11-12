@@ -117,9 +117,9 @@ def upload_results(from_path, session_id):
     """
     import config
     options = {
-    'webdav_hostname': 'https://surfdrive.surf.nl/files/remote.php/nonshib-webdav',
     'webdav_login': config.webdav_username, 
-    'webdav_password': config.webdav_password
+    'webdav_password': config.webdav_password,
+    'webdav_hostname': config.webdav_hostname 
     }
     remote_session = "/sessions/" + session_id 
     client = Client(options)
