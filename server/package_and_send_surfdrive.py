@@ -22,45 +22,24 @@ import pandas as pd
 README = """PCNportal results
 =================
 
-Model:               {model_name}
+Pretrained model:    {model_name}
 Date:                {today}
 PCNtoolkit version:  {ptk_version}
+Adaptation subjects: {n_adapt}
 Test subjects:       {n_subjects}
 Regions:             {n_regions}
+Main result:         results/Z_test.csv (one Z-score per subject and region)
+Plots:               plots/ (centile and Q-Q plots per region)
 
-Your pretrained normative model was transferred to your adaptation data
-(adjusted to your sites), and then applied to your test data.
-In all CSV files, rows are subjects (column "subject_ids") and the other
-columns are brain regions, in the same names as your input files.
+Load your transferred model and plot it in Python (pip install pcntoolkit=={ptk_version}),
+from the folder where you unzipped this file:
 
-results/
-  Z_test.csv            Z-scores: how far each value is from the normative
-                        mean, in standard deviations. Use these for analyses.
-  centiles_test.csv     Predicted values at the 5th, 25th, 50th, 75th and 95th
-                        centile for each subject (column "centile"), in the
-                        original units of your data.
-  Yhat_test.csv         Predicted mean for each subject.
-  logp_test.csv         Log-probability of each observed value under the model.
-  statistics_test.csv   Model fit per region on your test data
-                        (e.g. MACE, EXPV, Rho, RMSE, SMSE, MSLL).
-  statistics_adapt.csv  The same, on your adaptation data: shows how well the
-                        transfer to your sites worked.
+    from pcntoolkit import NormativeModel, plot_centiles
 
-model/
-  The transferred model. Load it with PCNtoolkit 1.x to make your own
-  predictions or centile plots:
-      from pcntoolkit import NormativeModel
-      model = NormativeModel.load("<folder where you unzipped this file>")
+    model = NormativeModel.load(".")
+    plot_centiles(model, response_vars=["{example_region}"])
 
-plots/
-  centiles_<region>_test_harmonized.png  Your test data over the normative
-                        centile curves. The data points are adjusted to one
-                        reference site and sex, so all subjects fit on one
-                        set of curves.
-  qq_<region>_test.png  Q-Q plot of the Z-scores: points on the diagonal mean
-                        the model fits your data well.
-
-Your data and results are deleted from our servers after 30 days.
+Your data is deleted from our servers after 30 days.
 """
 
 
@@ -80,12 +59,15 @@ def include_in_zip(relpath: str) -> bool:
 def build_results_zip(transfer_dir: str, zip_path: str, model_name: str) -> list:
     """Write results.zip from a transfer folder. Returns the files included."""
     z_test = pd.read_csv(os.path.join(transfer_dir, "results", "Z_test.csv"))
+    regions = [c for c in z_test.columns if c not in ("observations", "subject_ids")]
     readme = README.format(
         model_name=model_name,
         today=date.today().isoformat(),
         ptk_version=version("pcntoolkit"),
+        n_adapt=len(pd.read_csv(os.path.join(transfer_dir, "results", "Z_adapt.csv"), usecols=[0])),
         n_subjects=len(z_test),
-        n_regions=len([c for c in z_test.columns if c not in ("observations", "subject_ids")]),
+        n_regions=len(regions),
+        example_region=regions[0],
     )
 
     included = []
@@ -123,8 +105,7 @@ def email_results(session_id: str, email_receiver: str) -> None:
     em.set_content(
         "Here are your normative modelling results:\n"
         f"{config.surf_link}{session_id}\n\n"
-        "You'll be taken to your results folder. Click results.zip to download it;\n"
-        "README.txt inside explains each file.\n"
+        "You'll be taken to your results folder. Click results.zip to download it.\n"
     )
 
     context = ssl.create_default_context()
