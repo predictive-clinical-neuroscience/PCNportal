@@ -5,7 +5,7 @@ Original author: Pieter Barkema (2022). Packaging updated for PCNtoolkit 1.x.
 What goes in results.zip (from <session>/transfer/):
 - results/  all test outputs, plus statistics_adapt.csv (how well the transfer fit)
 - model/    the transferred model, loadable with NormativeModel.load
-- plots/    test plots only
+- plots/    test plots, plus the adaptation centile plots (no adaptation Q-Q plots)
 - README.txt
 
 Credentials (SURFdrive, Gmail) come from config.py, which only exists on the cluster.
@@ -73,7 +73,7 @@ def include_in_zip(relpath: str) -> bool:
     if folder == "results":
         return "_adapt" not in name or name == "statistics_adapt.csv"
     if folder == "plots":
-        return "_adapt" not in name
+        return "_adapt" not in name or name.startswith("centiles_")
     return False
 
 
