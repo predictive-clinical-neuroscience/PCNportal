@@ -1,0 +1,19 @@
+# Development / backend environment for PCNportal with PCNtoolkit 1.x.
+# Create with:  conda env create -f environment.yml
+# Used locally (website + transfer scripts) and on the cluster (server/ scripts).
+# Note: the website's Docker image still uses client/requirements.txt.
+name: pcnportal-ptk-1.4.0
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      # Modelling (server/)
+      - pcntoolkit==1.4.0
+      - webdavclient3==3.14.7
+      # Website (client/)
+      - Flask==3.1.3
+      - dash==4.5.1
+      - dash-bootstrap-components==2.0.4
+      - dash-extensions==2.0.6

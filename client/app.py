@@ -14,43 +14,45 @@ from dash.exceptions import PreventUpdate
 import pandas as pd
 from subprocess import PIPE, Popen, run, call, check_output
 from flask import Flask
-#import os, sys
-import io, os, base64
+import ast, io, json, os, sys, base64, subprocess
 
 server = Flask(__name__)
 # DashProxy is used instead of Dash to enable mapping multiple functions to one output (currently unused).
-app = DashProxy(server=server, external_stylesheets=[dbc.themes.MATERIA], 
+app = DashProxy(server=server, external_stylesheets=[dbc.themes.MATERIA],
                 title='PCNportal', update_title=None,transforms=[MultiplexerTransform()])
+
+# RUN_LOCAL=1 runs the website without the cluster (see run_local.py): server scripts
+# run on this machine, and a submitted transfer runs here in the background.
+RUN_LOCAL = os.environ.get("RUN_LOCAL") == "1"
+NOT_CONNECTED = ["No information could be retrieved. You are not connected to the server."]
+
+def run_server_script(script, *args):
+    """Run a script from the server scripts folder and return what it prints ("" on failure)."""
+    script_path = os.path.join(os.environ['PROJECTDIR'], os.environ['SCRIPTDIR'], script)
+    if RUN_LOCAL:
+        cmd = [sys.executable, script_path, *args]
+    else:
+        python = os.environ['PROJECTDIR'] + "/" + os.environ['PYTHON_ENV'] + "/bin/python"
+        cmd = ["ssh", "-o", "StrictHostKeyChecking=no", os.environ['MYUSER'], python, script_path, *args]
+    p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    output, _ = p.communicate()
+    return str(output, encoding='UTF-8').strip()
 
 # This function retrieves available data types or models.
 def retrieve_options(data_type=None):
-    import ast
-    
-    # Choose between data type or models directory
-    chosen_dir = os.environ['MODELS']
-    
-    if data_type is not None:
-        chosen_dir = os.path.join(chosen_dir, data_type)
-    try: 
-        py_script = os.path.join(os.environ['PROJECTDIR'], os.environ['SCRIPTDIR'], os.environ['LISTDIR'])
+    try:
+        # Choose between data type or models directory
+        chosen_dir = os.path.join(os.environ['PROJECTDIR'], os.environ['MODELS'])
+        if data_type is not None:
+            chosen_dir = os.path.join(chosen_dir, data_type)
+        output = run_server_script(os.environ['LISTDIR'], chosen_dir)
     except KeyError:
-        return ["No information could be retrieved. You are not connected to the server."]
-    # Create a remotely executable SSH command
-    list_dirs = ["ssh", "-o", "StrictHostKeyChecking=no", os.environ['MYUSER'], os.environ['PROJECTDIR']+"/"+os.environ['PYTHON_ENV']+"/bin/python", py_script, str(chosen_dir)]
-    p = Popen(list_dirs, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    # Optionally, you can use err to check error codes.
-    output, err = p.communicate()
-    # rc = p.returncode
-    
-    # Convert to appropriate list format
-    byte_to_string = str(output, encoding='UTF-8').strip()
-
+        return NOT_CONNECTED
     # Catch empty strings when no connection to the server could be made.
     try:
-        retrieved_information = ast.literal_eval(byte_to_string)
+        return ast.literal_eval(output)
     except (SyntaxError, ValueError, TypeError):
-        retrieved_information = ["No information could be retrieved. You are not connected to the server."]
-    return retrieved_information
+        return NOT_CONNECTED
 # -----------------------------------------------------------------
 # The GUI of the app is specified below.
 app.layout = html.Div([ 
@@ -85,7 +87,7 @@ app.layout = html.Div([
                 # Best practice for variable storage in Dash
                 dcc.Store(id='session_id', data=""),
                 dcc.Store(id='previous_request', data=[]),
-                dcc.Store(id="download_template", data=""),
+                dcc.Store(id="model_regions", data=[]),
                 dcc.Store(id="mandatory_columns", data=[]),
 
                 html.Br(),
@@ -251,61 +253,40 @@ app.layout = html.Div([
 )
 # Function for loading in static markdown files files.
 def load_tabs_markdown(load_readme_trigger):
-    with open('assets/home.md', 'r') as mdfile:
-        home = mdfile.readlines()
-    with open('assets/howto.md', 'r') as mdfile:
-        howto = mdfile.readlines()
-    with open('assets/modelinfo.md', 'r') as mdfile:
-        modelinfo = mdfile.readlines()
-    with open('assets/compute.md', 'r') as compute:
-        compute = compute.readlines()
-    with open('assets/dataprivacy.md', 'r') as dataprivacy:
-        dataprivacy = dataprivacy.readlines()
-    return home, howto, modelinfo, compute, dataprivacy
+    assets = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+    def read(name):
+        with open(os.path.join(assets, name), 'r', encoding='utf-8') as mdfile:
+            return mdfile.readlines()
+    return read('home.md'), read('howto.md'), read('modelinfo.md'), read('compute.md'), read('dataprivacy.md')
 
-# Function for dynamically reading in dynamic model information markdown files, model templates and mandatory columns.
+# Reads the chosen model's covariates, batch effects and regions (and README.md, if any)
+# from model/normative_model.json on the server.
 @app.callback(
     Output(component_id='model-readme', component_property='children'),
-    Output(component_id='download_template', component_property='data'),
     Output(component_id='mandatory_columns', component_property='data'),
+    Output(component_id='model_regions', component_property='data'),
     Input(component_id='model-selection', component_property='value'),
     State(component_id='data-type', component_property='value'),
     prevent_initial_call=True
 )
 def model_information(model_selection, data_type):
     # Only execute when model is chosen, to prevent errors.
-    if model_selection not in [None, 'please select data type first...', 'Select...', ""]:
-
-        projectdir = os.environ['PROJECTDIR']
-        username = os.environ['MYUSER']
-
-        model_path = os.path.join(projectdir, os.environ['MODELS'], f"{data_type}", model_selection) 
-        readme_path = os.path.join(model_path,"README.md")
-        covsbe_path = os.path.join(model_path, "mandatory_columns.txt") 
-
-        # Retrieve and write out model-specific readmes.
-        cat_readme = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", readme_path]
-        p = Popen(cat_readme, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        output, _ = p.communicate()
-        byte_to_string = str(output, encoding='UTF-8')
-
-        # Extract downloadable template link from readme.
-        try:
-            import re
-            download_pattern = r"\[Download\]\((.+)\)"
-            download_link = re.search(download_pattern, byte_to_string).group(1)
-        # Catch errors caused by no server connection.    
-        except AttributeError:
-            return no_update, no_update, no_update
-        # Get mandatory columns, i.e. covs and batch effects.
-        cat_model_covsbe = ["ssh", "-o", "StrictHostKeyChecking=no", username, "cat", covsbe_path]
-        p = Popen(cat_model_covsbe, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        output, _ = p.communicate()
-        covbe_byte_to_string = str(output, encoding='UTF-8')
-        mandatory_column_names = covbe_byte_to_string.splitlines()
-        return byte_to_string, download_link, mandatory_column_names
     # no_update prevents error when 3 values are expected to be returned but none are returned.
-    else: return no_update, no_update, no_update
+    if model_selection in [None, 'please select data type first...', 'Select...', ""] or not data_type:
+        return no_update, no_update, no_update
+
+    model_path = os.path.join(os.environ['PROJECTDIR'], os.environ['MODELS'], data_type, model_selection)
+    try:
+        info = json.loads(run_server_script("model_info.py", model_path))
+    except ValueError:  # No connection, or not a PCNtoolkit 1.x model
+        return "No information could be retrieved for this model.", [], []
+
+    batch_effects = ", ".join(f"{be} ({len(values)} values)" for be, values in info["batch_effects"].items())
+    summary = (f"**Covariates:** {', '.join(info['covariates'])}  \n"
+               f"**Batch effects:** {batch_effects}  \n"
+               f"**Regions:** {len(info['regions'])}\n")
+    mandatory_columns = info["covariates"] + list(info["batch_effects"])
+    return info["readme"] + "\n\n" + summary, mandatory_columns, info["regions"]
 
 # Function to restrict model choice based on data type choice
 @app.callback(
@@ -318,7 +299,7 @@ def update_dp(data_type):
     return model_selection_list
 
 # Evaluates the submitted data and gives a measure of success or a specific error.
-def input_checker(mandatory_columns, download_template, current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format):
+def input_checker(mandatory_columns, model_regions, current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format):
     
     # Trivial errors.
     return_message = ""
@@ -337,18 +318,14 @@ def input_checker(mandatory_columns, download_template, current_request, previou
         return_message = "You've already submitted this request."
 
     else: 
-        import pandas as pd
         test_data_columns = parse_contents(test_contents, test_filename).columns
         adapt_data_columns = parse_contents(adapt_contents, adapt_filename).columns
-        try:
-            goal_columns = pd.read_csv(download_template)
-        except FileNotFoundError:
-            return False, "No model template was found."
-        
+        if not model_regions:
+            return False, "No model information was found. Please select the model again."
+
         # Evaluate only number of matching non-mandatory columns, i.e. idps.
-        goal_columns = goal_columns.drop(goal_columns.filter(regex="Unname"),axis=1)
-        goal_columns = goal_columns.drop(mandatory_columns, axis=1).columns
-        
+        goal_columns = pd.Index(model_regions)
+
         # Ensure all mandatory columns are present.
         for col in mandatory_columns:
             if col not in test_data_columns or col not in adapt_data_columns:
@@ -390,14 +367,14 @@ def input_checker(mandatory_columns, download_template, current_request, previou
     State("upload_adapt_data", "filename"),
     State("previous_request", "data"),
     State("file-format", "value"),
-    State("download_template", "data"),
+    State("model_regions", "data"),
     State("mandatory_columns", "data"),
     Input("btn_csv", "n_clicks"),
     prevent_initial_call=True,
 )
-def display_alert(email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, previous_request, file_format,download_template, mandatory_columns, click):
+def display_alert(email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, previous_request, file_format, model_regions, mandatory_columns, click):
     current_request = [email_address, data_type, model_selection, test_filename, adapt_filename, file_format]
-    input_validated, return_message = input_checker(mandatory_columns, download_template, current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format)
+    input_validated, return_message = input_checker(mandatory_columns, model_regions, current_request, previous_request, email_address, data_type, model_selection, test_contents, test_filename, adapt_contents, adapt_filename, file_format)
     
     # Only create a session ID if their input is valid, and start processing.
     if input_validated == True:
@@ -431,9 +408,11 @@ def update_output(email_address, data_type, model_selection, test_contents, test
     
     # Computation only happens when there is a session ID - a new session ID or else it would've failed during input validation.
     if session_id != "":
-        import subprocess
         test_data_pd = parse_contents(test_contents, test_filename)
         adapt_data_pd = parse_contents(adapt_contents, adapt_filename)
+        if RUN_LOCAL:
+            return run_local_transfer(session_id, model_selection, data_type, email_address,
+                                      test_data_pd, adapt_data_pd)
         # Container session path
         session_path = os.path.join("sessions", session_id).replace("\\","/")
         os.mkdir(session_path)
@@ -485,6 +464,19 @@ def update_output(email_address, data_type, model_selection, test_contents, test
         return finished_message, "success", True
     else: return no_update, no_update, no_update
 
+def run_local_transfer(session_id, model_selection, data_type, email_address, test_data_pd, adapt_data_pd):
+    """RUN_LOCAL only: save the data like the cluster session and start the transfer in the background."""
+    projectdir = os.environ['PROJECTDIR']
+    session_dir = os.path.join(projectdir, "sessions", session_id)
+    os.makedirs(session_dir)
+    test_data_pd.to_pickle(os.path.join(session_dir, "test.pkl"))
+    adapt_data_pd.to_pickle(os.path.join(session_dir, "adapt.pkl"))
+    script = os.path.join(projectdir, os.environ['SCRIPTDIR'], "transfer_normative_models_online.py")
+    with open(os.path.join(session_dir, "main_job_output.txt"), "w") as log:
+        Popen([sys.executable, "-u", script, projectdir, model_selection, data_type, session_id,
+               os.environ['MODELS'], email_address, "--local"], stdout=log, stderr=subprocess.STDOUT)
+    return f"Local run started. Log and results: {session_dir}", "success", True
+
 # Currently all input is converted to pandas. Might need to change if we allow cifti and nifti input.
 def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
@@ -526,4 +518,4 @@ def list_adapt_file(adapt_fname):
 
 # Serve the app upon running the script.
 if __name__ == '__main__':
-    app.run_server()#debug=True
+    app.run()

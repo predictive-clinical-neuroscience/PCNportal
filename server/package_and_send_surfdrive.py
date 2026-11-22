@@ -1,171 +1,131 @@
+"""Package a session's results, upload them to SURFdrive and email the user a link.
+
+Original author: Pieter Barkema (2022). Packaging updated for PCNtoolkit 1.x.
+
+What goes in results.zip (from <session>/transfer/):
+- results/  all test outputs, plus statistics_adapt.csv (how well the transfer fit)
+- model/    the transferred model, loadable with NormativeModel.load
+- plots/    test plots, plus the adaptation centile plots (no adaptation Q-Q plots)
+- README.txt
+
+Credentials (SURFdrive, Gmail) come from config.py, which only exists on the cluster.
+build_results_zip() does not need it, so packaging can be tested locally.
 """
-Created on Wed Jun  1 12:01:11 2022
 
-@author: Pieter Barkema
+import os
+import zipfile
+from datetime import date
+from importlib.metadata import version
 
-This script sends normative modelling results to the user.
-It connects to the SURFdrive to upload the results.
-Then, it retrieves a download link for the results, and
-emails the link to the user with the provided email address
-and by connecting to the Gmail API.
+import pandas as pd
 
+README = """PCNportal results
+=================
 
+Pretrained model:    {model_name}
+Date:                {today}
+PCNtoolkit version:  {ptk_version}
+Adaptation subjects: {n_adapt}
+Test subjects:       {n_subjects}
+Regions:             {n_regions}
+Main result:         results/Z_test.csv (one Z-score per subject and region)
+Plots:               plots/ (centile and Q-Q plots per region)
+
+Load your transferred model and plot it in Python (pip install pcntoolkit=={ptk_version}),
+from the folder where you unzipped this file:
+
+    from pcntoolkit import NormativeModel, plot_centiles
+
+    model = NormativeModel.load(".")
+    plot_centiles(model, response_vars=["{example_region}"])
+
+Your data is deleted from our servers after 30 days.
 """
 
-from webdav3.client import Client
 
-def send_results(session_id, email_address):
-    """
-    
-    Main function to upload and send results.
-    It sends a download link to the user containing the 
-    model evaluation scores and z-scores of the current session.
-    
-    Parameters
-    ----------
-    session_id : string
-        Unique session ID corresponding to the client side ID.
-    email_address : string
-        User email address to send modelling results to.
+def include_in_zip(relpath: str) -> bool:
+    """Decide per file (path relative to the transfer folder) whether the user gets it."""
+    parts = relpath.replace("\\", "/").split("/")
+    folder, name = parts[0], parts[-1]
+    if folder == "model":
+        return True
+    if folder == "results":
+        return "_adapt" not in name or name == "statistics_adapt.csv"
+    if folder == "plots":
+        return "_adapt" not in name or name.startswith("centiles_")
+    return False
 
-    Returns
-    -------
-    No values are returned. Instead, the results are uploaded, and an email is 
-    sent to the user, containing a SURFdrive link to download their results.
-    
 
-    """
-    
-    import os
-    import config
-    
-    project_dir = config.project_dir
-    session_path = os.path.join(project_dir,"sessions",session_id)
-    from_path = os.path.join(session_path, "results.zip")
-    zip_name = "results.zip"
+def build_results_zip(transfer_dir: str, zip_path: str, model_name: str) -> list:
+    """Write results.zip from a transfer folder. Returns the files included."""
+    z_test = pd.read_csv(os.path.join(transfer_dir, "results", "Z_test.csv"))
+    regions = [c for c in z_test.columns if c not in ("observations", "subject_ids")]
+    readme = README.format(
+        model_name=model_name,
+        today=date.today().isoformat(),
+        ptk_version=version("pcntoolkit"),
+        n_adapt=len(pd.read_csv(os.path.join(transfer_dir, "results", "Z_adapt.csv"), usecols=[0])),
+        n_subjects=len(z_test),
+        n_regions=len(regions),
+        example_region=regions[0],
+    )
 
-    # Zip up the results.
-    zipper(session_path, zip_name)
-    
-    # Upload them to SURFdrive.
-    upload_results(from_path, session_id)
+    included = []
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("README.txt", readme)
+        for root, _, files in os.walk(transfer_dir):
+            for f in sorted(files):
+                relpath = os.path.relpath(os.path.join(root, f), transfer_dir)
+                if include_in_zip(relpath):
+                    zf.write(os.path.join(root, f), relpath)
+                    included.append(relpath)
+    return included
 
-    # Email the results to the user.
+
+def send_results(session_path: str, session_id: str, email_address: str, model_name: str) -> None:
+    """Zip the results, upload them to SURFdrive and email the user the link."""
+    zip_path = os.path.join(session_path, "results.zip")
+    build_results_zip(os.path.join(session_path, "transfer"), zip_path, model_name)
+    upload_results(zip_path, session_id)
     email_results(session_id, email_address)
 
-def email_results(session_id, email_receiver):
-    """
-    
-    Emails the user with a SURFdrive link to download their results.
 
-    Parameters
-    ----------
-    session_id : string
-        Unique session ID corresponding to the client side ID.
-    email_receiver : User email address to send the email with results to.
-        
-
-    Returns
-    -------
-    None. Sends an email.
-
-    """
+def email_results(session_id: str, email_receiver: str) -> None:
+    """Email the user a SURFdrive link to their results (Gmail account from config.py)."""
     import smtplib
     import ssl
-    import config
     from email.message import EmailMessage
 
-    # Define email sender and receiver
-    email_sender = config.gmail_username
-    email_password = config.gmail_password
-
-    # Set the subject and body of the email
-    subject = "Your normative modelling results"
-    session_results_URL = config.surf_link + session_id 
-    body = " Here are your normative modelling results: \n" + session_results_URL + " \n You'll be navigated to your results directory. \n Please click on the results.zip file to download it. "
+    import config
 
     em = EmailMessage()
-    em['From'] = email_sender
-    em['To'] = email_receiver
-    em['Subject'] = subject
-    em.set_content(body)
+    em["From"] = config.gmail_username
+    em["To"] = email_receiver
+    em["Subject"] = "Your normative modelling results"
+    em.set_content(
+        "Here are your normative modelling results:\n"
+        f"{config.surf_link}{session_id}\n\n"
+        "You'll be taken to your results folder. Click results.zip to download it.\n"
+    )
 
-    # Add SSL (layer of security)
     context = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as smtp:
+        smtp.login(config.gmail_username, config.gmail_password)
+        smtp.sendmail(config.gmail_username, email_receiver, em.as_string())
 
-    # Log in and send the email
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
-        smtp.login(email_sender, email_password)
-        smtp.sendmail(email_sender, email_receiver, em.as_string())
 
-def upload_results(from_path, session_id):
-    """
-    
-    Uploads the zipped up results to SURFdrive, using its API.
+def upload_results(from_path: str, session_id: str) -> None:
+    """Upload results.zip to SURFdrive under /sessions/<session_id>/ (WebDAV account from config.py)."""
+    from webdav3.client import Client
 
-    Parameters
-    ----------
-    from_path : string
-        The path to the directory that needs to be uploaded.
-    session_id : string
-        Unique session ID corresponding to the client side ID.
-
-    Returns
-    -------
-    None. Creates files on remote SURFdrive server.
-
-    """
     import config
-    options = {
-    'webdav_login': config.webdav_username, 
-    'webdav_password': config.webdav_password,
-    'webdav_hostname': config.webdav_hostname 
-    }
-    remote_session = "/sessions/" + session_id 
-    client = Client(options)
-    client.verify = False # To not check SSL certificates (Default = True)
+
+    client = Client({
+        "webdav_login": config.webdav_username,
+        "webdav_password": config.webdav_password,
+        "webdav_hostname": config.webdav_hostname,
+    })
+    client.verify = False  # Do not check SSL certificates (as before)
+    remote_session = "/sessions/" + session_id
     client.execute_request("mkdir", remote_session)
-    
-    to_path = remote_session + "/results.zip"
-    client.upload_sync(remote_path = to_path, local_path = from_path)
-
-def zipper(dirName, zipFileName):
-    """
-    
-    Creates a zipped directory from the results directory.
-
-    Parameters
-    ----------
-    dirName : STRING
-        Path to the directory that needs to be zipped.
-    zipFileName : STRING
-        Name of the created .zip file.
-
-    Returns
-    -------
-    None. Creates a zipped up directory.
-
-    """
-    
-    from zipfile import ZipFile
-    import os, pandas, pickle
-    os.chdir(dirName)
-    with ZipFile(zipFileName, 'w') as zipObj:
-        # Iterate over all the files in session directory
-        for filename in os.listdir(dirName):
-            # Only share and zip up the relevant files.
-            if filter_results(filename):
-    		# posthoc convert to .csv
-                with open(filename, "rb") as f: 
-                    myobject = pickle.load(f) 
-                    newname = filename.split(".")[0] + ".csv"
-                    df = pandas.DataFrame(myobject)
-                    df.to_csv(newname)
-                    zipObj.write(newname, newname)
-
-def filter_results(filename):
-    # Filter what error measures and results should be shared.
-    measures = ["Z_", "SMSE_", "RMSE_", "Rho_", "pRho_", "MSLL_", "EXPV_"]
-    for measure_type in measures:
-        if measure_type in filename:
-            return True
+    client.upload_sync(remote_path=remote_session + "/results.zip", local_path=from_path)

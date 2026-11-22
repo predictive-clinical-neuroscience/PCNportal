@@ -1,24 +1,27 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""List the subfolders of a folder, for the website's dropdowns.
+
+Original author: Pieter Barkema (2022).
+
+Called by the website (over SSH, or directly when running locally) with a full path:
+    <projectdir>/<models>                -> data types
+    <projectdir>/<models>/<data_type>    -> models of that data type
+Prints a Python list, which the website reads with ast.literal_eval.
 """
-Created on Wed Jun  1 12:01:11 2022
 
-@author: Pieter Barkema
-
-This script lists the available data types and corresponding models.
-It is executed on the server side and the output is provided to the client side.
-The website displays this information in dropdown selection menus.
-
-"""
+import os
+import sys
 
 
 def main():
-    import os, sys, config
-    chosen_dir = sys.argv[1]
-    full_path = os.path.join(config.project_dir, chosen_dir)
-    subdirs = os.listdir(full_path)
+    full_path = sys.argv[1]
+    subdirs = sorted(
+        d for d in os.listdir(full_path)
+        if not d.startswith(".") and os.path.isdir(os.path.join(full_path, d))
+    )
     print(subdirs)
     return subdirs
+
 
 if __name__ == "__main__":
     main()
