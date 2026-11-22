@@ -170,7 +170,7 @@ def main():
 
     if not args.local:
         from package_and_send_surfdrive import send_results
-        send_results(args.session_id, args.email_address)
+        send_results(session_path, args.session_id, args.email_address, args.model_name)
 
 
 if __name__ == "__main__":
