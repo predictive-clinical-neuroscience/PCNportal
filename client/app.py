@@ -14,20 +14,26 @@ from dash.exceptions import PreventUpdate
 import pandas as pd
 from subprocess import PIPE, Popen, run, call, check_output
 from flask import Flask
-import ast, io, json, os, base64, subprocess
+import ast, io, json, os, sys, base64, subprocess
 
 server = Flask(__name__)
 # DashProxy is used instead of Dash to enable mapping multiple functions to one output (currently unused).
 app = DashProxy(server=server, external_stylesheets=[dbc.themes.MATERIA],
                 title='PCNportal', update_title=None,transforms=[MultiplexerTransform()])
 
+# RUN_LOCAL=1 runs the website without the cluster (see run_local.py): server scripts
+# run on this machine, and a submitted transfer runs here in the background.
+RUN_LOCAL = os.environ.get("RUN_LOCAL") == "1"
 NOT_CONNECTED = ["No information could be retrieved. You are not connected to the server."]
 
 def run_server_script(script, *args):
     """Run a script from the server scripts folder and return what it prints ("" on failure)."""
     script_path = os.path.join(os.environ['PROJECTDIR'], os.environ['SCRIPTDIR'], script)
-    python = os.environ['PROJECTDIR'] + "/" + os.environ['PYTHON_ENV'] + "/bin/python"
-    cmd = ["ssh", "-o", "StrictHostKeyChecking=no", os.environ['MYUSER'], python, script_path, *args]
+    if RUN_LOCAL:
+        cmd = [sys.executable, script_path, *args]
+    else:
+        python = os.environ['PROJECTDIR'] + "/" + os.environ['PYTHON_ENV'] + "/bin/python"
+        cmd = ["ssh", "-o", "StrictHostKeyChecking=no", os.environ['MYUSER'], python, script_path, *args]
     p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, _ = p.communicate()
     return str(output, encoding='UTF-8').strip()
@@ -247,8 +253,9 @@ app.layout = html.Div([
 )
 # Function for loading in static markdown files files.
 def load_tabs_markdown(load_readme_trigger):
+    assets = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
     def read(name):
-        with open(os.path.join('assets', name), 'r', encoding='utf-8') as mdfile:
+        with open(os.path.join(assets, name), 'r', encoding='utf-8') as mdfile:
             return mdfile.readlines()
     return read('home.md'), read('howto.md'), read('modelinfo.md'), read('compute.md'), read('dataprivacy.md')
 
@@ -403,6 +410,9 @@ def update_output(email_address, data_type, model_selection, test_contents, test
     if session_id != "":
         test_data_pd = parse_contents(test_contents, test_filename)
         adapt_data_pd = parse_contents(adapt_contents, adapt_filename)
+        if RUN_LOCAL:
+            return run_local_transfer(session_id, model_selection, data_type, email_address,
+                                      test_data_pd, adapt_data_pd)
         # Container session path
         session_path = os.path.join("sessions", session_id).replace("\\","/")
         os.mkdir(session_path)
@@ -454,6 +464,19 @@ def update_output(email_address, data_type, model_selection, test_contents, test
         return finished_message, "success", True
     else: return no_update, no_update, no_update
 
+def run_local_transfer(session_id, model_selection, data_type, email_address, test_data_pd, adapt_data_pd):
+    """RUN_LOCAL only: save the data like the cluster session and start the transfer in the background."""
+    projectdir = os.environ['PROJECTDIR']
+    session_dir = os.path.join(projectdir, "sessions", session_id)
+    os.makedirs(session_dir)
+    test_data_pd.to_pickle(os.path.join(session_dir, "test.pkl"))
+    adapt_data_pd.to_pickle(os.path.join(session_dir, "adapt.pkl"))
+    script = os.path.join(projectdir, os.environ['SCRIPTDIR'], "transfer_normative_models_online.py")
+    with open(os.path.join(session_dir, "main_job_output.txt"), "w") as log:
+        Popen([sys.executable, "-u", script, projectdir, model_selection, data_type, session_id,
+               os.environ['MODELS'], email_address, "--local"], stdout=log, stderr=subprocess.STDOUT)
+    return f"Local run started. Log and results: {session_dir}", "success", True
+
 # Currently all input is converted to pandas. Might need to change if we allow cifti and nifti input.
 def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
@@ -495,4 +518,4 @@ def list_adapt_file(adapt_fname):
 
 # Serve the app upon running the script.
 if __name__ == '__main__':
-    app.run_server()#debug=True
+    app.run()
